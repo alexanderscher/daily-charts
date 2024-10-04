@@ -1,1 +1,39 @@
+# Ignore Python virtual environment directory
+venv/
+
+# Ignore Python bytecode files
+*.pyc
+
+# Ignore __pycache__ directories
+__pycache__/
+
+.pytest_cache/
+
+# Ignore environment variable files
 .env
+
+# Ignore Terraform variable files
+*.tfvars
+
+# Ignore Terraform state files
+*.tfstate
+*.tfstate.*
+
+# Ignore Terraform crash logs
+crash.log
+
+# Ignore Terraform plan files
+*.tfplan
+
+# Ignore the entire .terraform directory
+.terraform/
+
+# Ignore large Terraform provider binaries
+terraform/.terraform/providers/
+
+# Ignore large files (add more specific patterns if needed)
+*.zip
+*.tar.gz
+*.bin
+
+commands.txt
