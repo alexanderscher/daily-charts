@@ -67,12 +67,12 @@ jobs:
       # Step 9: Initialize Terraform
       - name: Initialize Terraform
         run: terraform init
-        working-directory: ./tf/setup
+        working-directory: ./tf/spotify
 
       # Step 10: Validate Terraform configuration
       - name: Validate Terraform
         run: terraform validate
-        working-directory: ./tf/setup
+        working-directory: ./tf/spotify
 
       # Step 11: Plan Terraform changes
       - name: Terraform Plan
@@ -88,7 +88,7 @@ jobs:
             -var "conor=${{ secrets.CONOR }}" \
             -var "ari=${{ secrets.ARI }}" \
             -var "laura=${{ secrets.LAURA }}" \
-        working-directory: ./tf/setup
+        working-directory: ./tf/spotify
 
       # Step 12: Apply Terraform changes
       - name: Apply Terraform Changes
@@ -104,4 +104,4 @@ jobs:
           -var "conor=${{ secrets.CONOR }}" \
           -var "ari=${{ secrets.ARI }}" \
           -var "laura=${{ secrets.LAURA }}" \
-        working-directory: ./tf/setup
+        working-directory: ./tf/spotify
