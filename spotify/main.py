@@ -16,11 +16,16 @@ pd.set_option("display.width", 1000)
 pd.set_option("display.colheader_justify", "center")
 pd.set_option("display.precision", 3)
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from layers.db.python.get_db import FetchDB
-from layers.utils.python.check import check_prod
-from layers.apis.python.spotify_api import SpotifyAPI
-from layers.utils.python.check import smart_partial_match
+# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# from layers.db.python.get_db import FetchDB
+# from layers.utils.python.check import check_prod
+# from layers.apis.python.spotify_api import SpotifyAPI
+# from layers.utils.python.check import smart_partial_match
+
+from get_db import FetchDB
+from check import check_prod
+from spotify_api import SpotifyAPI
+from check import smart_partial_match
 
 CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
 USER_ID = os.getenv("SPOTIFY_USER_ID")
