@@ -21,6 +21,7 @@ resource "aws_lambda_function" "spotify_charts" {
       CONOR                  = var.conor
       SPOTIFY_CHART_USERNAME = var.spotify_chart_username
       SPOTIFY_CHART_PASSWORD = var.spotify_chart_password
+      DB_PASSWORD            = var.db_password
     }
   }
 

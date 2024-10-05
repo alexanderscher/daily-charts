@@ -44,3 +44,7 @@ variable "spotify_chart_username" {
 variable "spotify_chart_password" {
   type = string
 }
+
+variable "db_password" {
+  type = string
+}

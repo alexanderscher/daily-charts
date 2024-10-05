@@ -90,6 +90,7 @@ jobs:
             -var "laura=${{ secrets.LAURA }}" \
             -var "spotify_chart_username=${{ secrets.SPOTIFY_CHART_USERNAME }}" \
             -var "spotify_chart_password=${{ secrets.SPOTIFY_CHART_PASSWORD }}" \
+            -var "db_password=${{ secrets.DB_PASSWORD }}" \
 
         working-directory: ./tf/spotify
 
@@ -109,5 +110,6 @@ jobs:
           -var "laura=${{ secrets.LAURA }}" \
           -var "spotify_chart_username=${{ secrets.SPOTIFY_CHART_USERNAME }}" \
           -var "spotify_chart_password=${{ secrets.SPOTIFY_CHART_PASSWORD }}" \
+          -var "db_password=${{ secrets.DB_PASSWORD }}" \
 
         working-directory: ./tf/spotify
