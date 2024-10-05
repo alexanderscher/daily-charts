@@ -25,6 +25,9 @@ CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
 USER_ID = os.getenv("SPOTIFY_USER_ID")
 CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
 
+SPOTIFY_CHART_USERNAME = os.getenv("SPOTIFY_CHART_USERNAME")
+SPOTIFY_CHART_PASSWORD = os.getenv("SPOTIFY_CHART_PASSWORD")
+
 
 class Scrape:
     def __init__(self, driver):
@@ -46,14 +49,7 @@ class Scrape:
     def spotify_signin(self):
         try:
             self.driver.get("https://accounts.spotify.com/en/login")
-            self.driver.refresh()
-            from dotenv import dotenv_values
-
-            config = dotenv_values("/Users/al/Desktop/L2TK.nosync/.env")
-            credentials = {
-                "username": config["S4A_ALEX_USERNAME"],
-                "password": config["S4A_ALEX_PASSWORD"],
-            }
+            time.sleep(5)
             input_username = self.driver.find_element(
                 By.XPATH, '//*[@id="login-username"]'
             )
@@ -64,11 +60,11 @@ class Scrape:
 
             input_username.click()
             input_username.clear()
-            input_username.send_keys(credentials["username"])
+            input_username.send_keys(SPOTIFY_CHART_USERNAME)
             time.sleep(2)
             input_password.click()
             input_password.clear()
-            input_password.send_keys(credentials["password"])
+            input_password.send_keys(SPOTIFY_CHART_PASSWORD)
             time.sleep(2)
             button_log_in = self.driver.find_element(
                 By.CLASS_NAME, "ButtonInner-sc-14ud5tc-0"

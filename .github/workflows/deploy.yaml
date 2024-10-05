@@ -88,6 +88,9 @@ jobs:
             -var "conor=${{ secrets.CONOR }}" \
             -var "ari=${{ secrets.ARI }}" \
             -var "laura=${{ secrets.LAURA }}" \
+            -var "spotify_chart_username=${{ secrets.SPOTIFY_CHART_USERNAME }}" \
+            -var "spotify_chart_password=${{ secrets.SPOTIFY_CHART_PASSWORD }}" \
+
         working-directory: ./tf/spotify
 
       # Step 12: Apply Terraform changes
@@ -104,4 +107,7 @@ jobs:
           -var "conor=${{ secrets.CONOR }}" \
           -var "ari=${{ secrets.ARI }}" \
           -var "laura=${{ secrets.LAURA }}" \
+          -var "spotify_chart_username=${{ secrets.SPOTIFY_CHART_USERNAME }}" \
+          -var "spotify_chart_password=${{ secrets.SPOTIFY_CHART_PASSWORD }}" \
+
         working-directory: ./tf/spotify

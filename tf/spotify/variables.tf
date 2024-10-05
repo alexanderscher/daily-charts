@@ -37,3 +37,10 @@ variable "ari" {
 variable "laura" {
   type = string
 }
+
+variable "spotify_chart_username" {
+  type = string
+}
+variable "spotify_chart_password" {
+  type = string
+}
