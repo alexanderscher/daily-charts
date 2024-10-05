@@ -2,9 +2,12 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 import time
+from botocore.exceptions import ClientError
 import pandas as pd
 import os
+import boto3
 import datetime
+from io import BytesIO
 import sys
 from tempfile import mkdtemp
 from docx import Document
@@ -19,10 +22,10 @@ pd.set_option("display.colheader_justify", "center")
 pd.set_option("display.precision", 3)
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from layers.db.get_db import FetchDB
-from layers.utils.check import check_prod
-from layers.apis.spotify_api import SpotifyAPI
-from layers.utils.check import smart_partial_match
+from layers.db.python.get_db import FetchDB
+from layers.utils.python.check import check_prod
+from layers.apis.python.spotify_api import SpotifyAPI
+from layers.utils.python.check import smart_partial_match
 
 CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
 USER_ID = os.getenv("SPOTIFY_USER_ID")
@@ -32,14 +35,15 @@ CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
 class Scrape:
     def __init__(self, driver):
         self.db = FetchDB()
-        self.roster_artists = self.db.get_roster_artists()
         self.df = []
         self.us = []
+        self.driver = driver
         self.pub_songs = self.db.get_pub_songs()
         self.pub_artists = self.db.get_pub_artists()
-        self.driver = driver
+        self.roster_artists = self.db.get_roster_artists()
         self.major_labels = self.db.get_major_labels()
         self.signed_artists = self.db.get_signed_artists()
+        self.prospects = self.db.get_prospects()
         self.client = SpotifyAPI(CLIENT_ID, USER_ID, CLIENT_SECRET)
         self.l2tk_chart = []
         self.other = []
@@ -340,7 +344,11 @@ class Scrape:
                             )
                         )
 
-    def create_docx(self):
+    def create_html(self):
+        conor = os.getenv("CONOR")
+        ari = os.getenv("ARI")
+        laura = os.getenv("LAURA")
+
         final_df = unsigned = pd.DataFrame(
             self.us,
             columns=[
@@ -358,51 +366,51 @@ class Scrape:
                 "Date",
             ],
         )
-        document = Document()
-
-        document.add_paragraph(
-            "Spotify Chart Report - "
-            + datetime.datetime.now().strftime("%m/%d/%y")
-            + "\n Conor Ambrose <conor@listen2thekids.com>,  Ari Kononov <ari@listen2thekids.com>, laura@listen2thekids.com \n"
-        )
+        html_body = f"""
+        <html>
+        <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; font-size: 12px; }}
+            h2 {{ font-size: 14px; font-weight: bold; }}
+            .prospect {{ color: red; }}
+            .other {{ color: yellow; }}
+        </style>
+        </head>
+        <body>
+        <p>
+            Spotify Chart Report - {datetime.datetime.now().strftime("%m/%d/%y")}
+            <br> {conor}, {ari}, {laura}
+        </p>
+        """
 
         chart_header = None
 
         def add_content_and_header(chart, date):
+            nonlocal html_body
             if self.l2tk_chart or self.other or self.prospect_list:
-                para_header = document.add_paragraph()
-                font = para_header.style.font
-                font.name = "Arial"
-                font.size = Pt(9)
                 header_text = (
-                    "\n" + f"{chart}\n".upper()
+                    f"{chart.upper()}</strong>"
                     if pd.isna(date)
-                    else "\n" + f"{chart} - {date}\n".upper()
+                    else f"<br><br><strong style='text-decoration: underline;'>{chart.upper()} - {date.upper()}</strong><br><br>"
                 )
-                runner = para_header.add_run(header_text)
-                runner.bold = True
-                runner.underline = True
+                html_body += header_text
+
                 if self.l2tk_chart:
-                    document.add_paragraph("L2TK:")
+                    html_body += "<p>L2TK:</p>"
                     for p in self.l2tk_chart:
-                        para = document.add_paragraph(p)
-                        for run in para.runs:
-                            run.font.highlight_color = WD_COLOR_INDEX.BRIGHT_GREEN
+                        html_body += f"<p>{p}</p>"
 
                 if self.prospect_list:
-                    document.add_paragraph("PROSPECT:")
+                    html_body += "<br><p>PROSPECT:</p>"
                     for p in self.prospect_list:
-                        para = document.add_paragraph(p)
-                        for run in para.runs:
-                            run.font.highlight_color = WD_COLOR_INDEX.RED
+                        html_body += (
+                            f"<p><span style='background-color: red;'>{p}</span></p>"
+                        )
 
                 if self.other:
-                    document.add_paragraph("NEW ADDS:")
+                    html_body += "<br><p>NEW ADDS:</p>"
                     for p in self.other:
-                        para = document.add_paragraph(p["c"])
-                        if p["h"]:
-                            for run in para.runs:
-                                run.font.highlight_color = WD_COLOR_INDEX.YELLOW
+                        html_body += f"<p><mark>{p['c']}</mark></p>"
 
             self.l2tk_chart = []
             self.prospect_list = []
@@ -432,37 +440,68 @@ class Scrape:
                 chart_header = chart
 
             if l2tk == "L2TK":
-                # if (
-                #     artist.lower() in prospect
-                # ):  # Check if song (lowercased) is in the prospect list
-
-                #     prospect_list.append(
-                #         f"{position}. {artist}  -  {song} ({'=' if movement == '0' else movement})\n  • Days on chart: {day}\n  • Peak: {peak}\n"
-                #     )
-                # else:
-                self.l2tk_chart.append(
-                    f"{position}. {artist}  -  {song} ({'=' if movement == '0' else movement}) (L2TK)\n  • Days on chart: {day}\n  • Peak: {peak}\n"
-                )
+                if artist.lower() in self.prospects:
+                    self.prospect_list.append(
+                        f"{position}. {artist}  -  {song} ({'=' if movement == '0' else movement})<br>&nbsp&nbsp• Days on chart: {day}<br>&nbsp&nbsp• Peak: {peak}"
+                    )
+                else:
+                    self.l2tk_chart.append(
+                        f"{position}. {artist}  -  {song} ({'=' if movement == '0' else movement}) (L2TK)<br>&nbsp&nbsp• Days on chart: {day}<br>&nbsp&nbsp• Peak: {peak}"
+                    )
 
             if movement == "NEW" and unsigned == "UNSIGNED":
                 self.other.append(
                     {
-                        "c": f"{position}. {artist} -  {song} ({movement})\n  • Label: {label} (UNSIGNED)\n  • {link}\n",
+                        "c": f"{position}. {artist} -  {song} ({movement})<br>&nbsp&nbsp• Label: {label} (UNSIGNED)<br>&nbsp&nbsp• {link}",
                         "h": True,
                     }
                 )
-
         add_content_and_header(chart_header, date)
-        document.save(
-            f'spotify_chart_intern_{datetime.datetime.now().strftime("%y%m%d")}.docx'
+
+        html_body += "</body></html>"
+
+        return html_body
+
+
+def send_email(subject, body) -> None:
+    ses_client = boto3.client(
+        "ses",
+        region_name="us-east-1",
+        aws_access_key_id=os.getenv("AWS_ACCESS_KEY"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+    )
+    sender = os.getenv("ALEX")
+
+    try:
+        response = ses_client.send_email(
+            Destination={
+                "ToAddresses": [os.getenv("ALEX")],
+            },
+            Message={
+                "Body": {
+                    "Html": {
+                        "Charset": "UTF-8",
+                        "Data": body,
+                    },
+                },
+                "Subject": {
+                    "Charset": "UTF-8",
+                    "Data": subject,
+                },
+            },
+            Source=sender,
         )
+    except ClientError as e:
+        print(f"Error sending email: {e.response['Error']['Message']}")
+    else:
+        print(f"Email sent! Message ID: {response['MessageId']}")
 
 
 def scrape_all():
 
     options = webdriver.ChromeOptions()
     # options.binary_location = "/opt/chrome/chrome"
-    options.add_argument("--headless=new")
+    # options.add_argument("--headless=new")
     # options.add_argument("--no-sandbox")
     # options.add_argument("--disable-gpu")
     # options.add_argument("--window-size=1963x1696")
@@ -489,35 +528,42 @@ def scrape_all():
         "SPOTIFY GLOBAL",
         "https://charts.spotify.com/charts/view/regional-global-daily/latest",
     )
+    # scrape.spotify(
+    #     "SPOTIFY USA", "https://charts.spotify.com/charts/view/regional-us-daily/latest"
+    # )
+    # scrape.spotify(
+    #     "SPOTIFY CA", "https://charts.spotify.com/charts/view/regional-ca-daily/latest"
+    # )
+    # scrape.spotify(
+    #     "SPOTIFY UK",
+    #     "https://charts.spotify.com/charts/view/regional-gb-daily/latest",
+    # )
+    # scrape.spotify(
+    #     "SPOTIFY VIRAL GLOBAL",
+    #     "https://charts.spotify.com/charts/view/viral-global-daily/latest",
+    # )
+
     scrape.spotify(
-        "SPOTIFY USA", "https://charts.spotify.com/charts/view/regional-us-daily/latest"
+        "SPOTIFY VIRAL US",
+        "https://charts.spotify.com/charts/view/viral-us-daily/latest",
     )
-    scrape.spotify(
-        "SPOTIFY CA", "https://charts.spotify.com/charts/view/regional-ca-daily/latest"
-    )
-    scrape.spotify(
-        "SPOTIFY UK",
-        "https://charts.spotify.com/charts/view/regional-gb-daily/latest",
-    )
-    scrape.spotify(
-        "SPOTIFY VIRAL GLOBAL",
-        "https://charts.spotify.com/charts/view/viral-global-daily/latest",
-    )
-    scrape.spotify(
-        "SPOTIFY VIRAL CA",
-        "https://charts.spotify.com/charts/view/viral-CA-daily/latest",
-    )
-    scrape.spotify(
-        "SPOTIFY VIRAL NZ",
-        "https://charts.spotify.com/charts/view/viral-nz-daily/latest",
-    )
-    scrape.spotify(
-        "SPOTIFY VIRAL UK",
-        "https://charts.spotify.com/charts/view/viral-gb-daily/latest",
-    )
+    # scrape.spotify(
+    #     "SPOTIFY VIRAL CA",
+    #     "https://charts.spotify.com/charts/view/viral-CA-daily/latest",
+    # )
+    # scrape.spotify(
+    #     "SPOTIFY VIRAL NZ",
+    #     "https://charts.spotify.com/charts/view/viral-nz-daily/latest",
+    # )
+    # scrape.spotify(
+    #     "SPOTIFY VIRAL UK",
+    #     "https://charts.spotify.com/charts/view/viral-gb-daily/latest",
+    # )
     scrape.driver.quit()
     scrape.chart_search()
-    scrape.create_docx()
+    body = scrape.create_html()
+    subject = f'Spotify Chart Report - {datetime.datetime.now().strftime("%m/%d/%y")}'
+    send_email(subject, body)
 
 
 def lambda_handler(event, context):
