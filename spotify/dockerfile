@@ -13,7 +13,7 @@ RUN dnf install -y atk cups-libs gtk3 libXcomposite alsa-lib \
 RUN pip install selenium==4.24.0 pandas boto3 requests SQLAlchemy
 COPY --from=build /opt/chrome-linux64 /opt/chrome
 COPY --from=build /opt/chromedriver-linux64 /opt/
-COPY main.py ./
+COPY spotify/ /var/task/
 RUN chmod 755 /var/task/main.py
 
 CMD [ "main.lambda_handler" ]
