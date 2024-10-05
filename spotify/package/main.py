@@ -516,37 +516,37 @@ def scrape_all():
         "SPOTIFY GLOBAL",
         "https://charts.spotify.com/charts/view/regional-global-daily/latest",
     )
-    # scrape.spotify(
-    #     "SPOTIFY USA", "https://charts.spotify.com/charts/view/regional-us-daily/latest"
-    # )
-    # scrape.spotify(
-    #     "SPOTIFY CA", "https://charts.spotify.com/charts/view/regional-ca-daily/latest"
-    # )
-    # scrape.spotify(
-    #     "SPOTIFY UK",
-    #     "https://charts.spotify.com/charts/view/regional-gb-daily/latest",
-    # )
-    # scrape.spotify(
-    #     "SPOTIFY VIRAL GLOBAL",
-    #     "https://charts.spotify.com/charts/view/viral-global-daily/latest",
-    # )
+    scrape.spotify(
+        "SPOTIFY USA", "https://charts.spotify.com/charts/view/regional-us-daily/latest"
+    )
+    scrape.spotify(
+        "SPOTIFY CA", "https://charts.spotify.com/charts/view/regional-ca-daily/latest"
+    )
+    scrape.spotify(
+        "SPOTIFY UK",
+        "https://charts.spotify.com/charts/view/regional-gb-daily/latest",
+    )
+    scrape.spotify(
+        "SPOTIFY VIRAL GLOBAL",
+        "https://charts.spotify.com/charts/view/viral-global-daily/latest",
+    )
 
-    # scrape.spotify(
-    #     "SPOTIFY VIRAL US",
-    #     "https://charts.spotify.com/charts/view/viral-us-daily/latest",
-    # )
-    # scrape.spotify(
-    #     "SPOTIFY VIRAL CA",
-    #     "https://charts.spotify.com/charts/view/viral-CA-daily/latest",
-    # )
-    # scrape.spotify(
-    #     "SPOTIFY VIRAL NZ",
-    #     "https://charts.spotify.com/charts/view/viral-nz-daily/latest",
-    # )
-    # scrape.spotify(
-    #     "SPOTIFY VIRAL UK",
-    #     "https://charts.spotify.com/charts/view/viral-gb-daily/latest",
-    # )
+    scrape.spotify(
+        "SPOTIFY VIRAL US",
+        "https://charts.spotify.com/charts/view/viral-us-daily/latest",
+    )
+    scrape.spotify(
+        "SPOTIFY VIRAL CA",
+        "https://charts.spotify.com/charts/view/viral-CA-daily/latest",
+    )
+    scrape.spotify(
+        "SPOTIFY VIRAL NZ",
+        "https://charts.spotify.com/charts/view/viral-nz-daily/latest",
+    )
+    scrape.spotify(
+        "SPOTIFY VIRAL UK",
+        "https://charts.spotify.com/charts/view/viral-gb-daily/latest",
+    )
     scrape.driver.quit()
     scrape.chart_search()
     body = scrape.create_html()
