@@ -25,8 +25,8 @@ CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
 USER_ID = os.getenv("SPOTIFY_USER_ID")
 CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
 
-SPOTIFY_CHART_USERNAME = os.getenv("SPOTIFY_CHART_USERNAME")
-SPOTIFY_CHART_PASSWORD = os.getenv("SPOTIFY_CHART_PASSWORD")
+SPOTIFY_CHARTS_USERNAME = os.getenv("SPOTIFY_CHARTS_USERNAME")
+SPOTIFY_CHARTS_PASSWORD = os.getenv("SPOTIFY_CHARTS_PASSWORD")
 
 
 class Scrape:
@@ -60,11 +60,11 @@ class Scrape:
 
             input_username.click()
             input_username.clear()
-            input_username.send_keys(SPOTIFY_CHART_USERNAME)
+            input_username.send_keys(SPOTIFY_CHARTS_USERNAME)
             time.sleep(2)
             input_password.click()
             input_password.clear()
-            input_password.send_keys(SPOTIFY_CHART_PASSWORD)
+            input_password.send_keys(SPOTIFY_CHARTS_PASSWORD)
             time.sleep(2)
             button_log_in = self.driver.find_element(
                 By.CLASS_NAME, "ButtonInner-sc-14ud5tc-0"
@@ -457,8 +457,6 @@ def send_email(subject, body) -> None:
     ses_client = boto3.client(
         "ses",
         region_name="us-east-1",
-        aws_access_key_id=os.getenv("AWS_ACCESS_KEY"),
-        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
     )
     sender = os.getenv("ALEX")
 
@@ -518,37 +516,37 @@ def scrape_all():
         "SPOTIFY GLOBAL",
         "https://charts.spotify.com/charts/view/regional-global-daily/latest",
     )
-    scrape.spotify(
-        "SPOTIFY USA", "https://charts.spotify.com/charts/view/regional-us-daily/latest"
-    )
-    scrape.spotify(
-        "SPOTIFY CA", "https://charts.spotify.com/charts/view/regional-ca-daily/latest"
-    )
-    scrape.spotify(
-        "SPOTIFY UK",
-        "https://charts.spotify.com/charts/view/regional-gb-daily/latest",
-    )
-    scrape.spotify(
-        "SPOTIFY VIRAL GLOBAL",
-        "https://charts.spotify.com/charts/view/viral-global-daily/latest",
-    )
+    # scrape.spotify(
+    #     "SPOTIFY USA", "https://charts.spotify.com/charts/view/regional-us-daily/latest"
+    # )
+    # scrape.spotify(
+    #     "SPOTIFY CA", "https://charts.spotify.com/charts/view/regional-ca-daily/latest"
+    # )
+    # scrape.spotify(
+    #     "SPOTIFY UK",
+    #     "https://charts.spotify.com/charts/view/regional-gb-daily/latest",
+    # )
+    # scrape.spotify(
+    #     "SPOTIFY VIRAL GLOBAL",
+    #     "https://charts.spotify.com/charts/view/viral-global-daily/latest",
+    # )
 
-    scrape.spotify(
-        "SPOTIFY VIRAL US",
-        "https://charts.spotify.com/charts/view/viral-us-daily/latest",
-    )
-    scrape.spotify(
-        "SPOTIFY VIRAL CA",
-        "https://charts.spotify.com/charts/view/viral-CA-daily/latest",
-    )
-    scrape.spotify(
-        "SPOTIFY VIRAL NZ",
-        "https://charts.spotify.com/charts/view/viral-nz-daily/latest",
-    )
-    scrape.spotify(
-        "SPOTIFY VIRAL UK",
-        "https://charts.spotify.com/charts/view/viral-gb-daily/latest",
-    )
+    # scrape.spotify(
+    #     "SPOTIFY VIRAL US",
+    #     "https://charts.spotify.com/charts/view/viral-us-daily/latest",
+    # )
+    # scrape.spotify(
+    #     "SPOTIFY VIRAL CA",
+    #     "https://charts.spotify.com/charts/view/viral-CA-daily/latest",
+    # )
+    # scrape.spotify(
+    #     "SPOTIFY VIRAL NZ",
+    #     "https://charts.spotify.com/charts/view/viral-nz-daily/latest",
+    # )
+    # scrape.spotify(
+    #     "SPOTIFY VIRAL UK",
+    #     "https://charts.spotify.com/charts/view/viral-gb-daily/latest",
+    # )
     scrape.driver.quit()
     scrape.chart_search()
     body = scrape.create_html()
