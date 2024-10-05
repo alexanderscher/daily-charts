@@ -17,9 +17,9 @@ pd.set_option("display.colheader_justify", "center")
 pd.set_option("display.precision", 3)
 
 from db.get_db import FetchDB
-from spotify.package.spotify_api import SpotifyAPI
-from spotify.package.check import check_prod
-from spotify.package.check import smart_partial_match
+from spotify_api import SpotifyAPI
+from check import check_prod
+from check import smart_partial_match
 
 CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
 USER_ID = os.getenv("SPOTIFY_USER_ID")
