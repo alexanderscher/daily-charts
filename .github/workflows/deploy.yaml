@@ -51,7 +51,7 @@ jobs:
       # Step 6: Build and Push the Docker image to ECR
       - name: Build and Push Docker Image to ECR
         run: |
-          docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/spotify-charts-ecr:latest --push --provenance=false ./apple
+          docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/spotify-charts-ecr:latest --push --provenance=false ./spotify
 
       # Step 7: Update the Lambda function with the new image
       - name: Update Lambda Function with New Image
@@ -83,7 +83,11 @@ jobs:
             -var "aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
             -var "spotify_client_id=${{ secrets.SPOTIFY_CLIENT_ID }}" \
             -var "spotify_client_secret=${{ secrets.SPOTIFY_CLIENT_SECRET }}" \
-            -var "spotify_user_id=${{ secrets.SPOTIFY_USER_ID }}"
+            -var "spotify_user_id=${{ secrets.SPOTIFY_USER_ID }}" \
+            -var "alex=${{ secrets.ALEX }}" \
+            -var "conor=${{ secrets.CONOR }}" \
+            -var "ari=${{ secrets.ARI }}" \
+            -var "laura=${{ secrets.LAURA }}" \
         working-directory: ./tf/setup
 
       # Step 12: Apply Terraform changes
@@ -95,5 +99,9 @@ jobs:
           -var "aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
           -var "spotify_client_id=${{ secrets.SPOTIFY_CLIENT_ID }}" \
           -var "spotify_client_secret=${{ secrets.SPOTIFY_CLIENT_SECRET }}" \
-          -var "spotify_user_id=${{ secrets.SPOTIFY_USER_ID }}"
+          -var "spotify_user_id=${{ secrets.SPOTIFY_USER_ID }}" \
+          -var "alex=${{ secrets.ALEX }}" \
+          -var "conor=${{ secrets.CONOR }}" \
+          -var "ari=${{ secrets.ARI }}" \
+          -var "laura=${{ secrets.LAURA }}" \
         working-directory: ./tf/setup

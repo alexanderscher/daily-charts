@@ -24,10 +24,12 @@ variable "aws_secret_access_key" {
   type = string
 }
 
+variable "alex" {
+  type = string
+}
 variable "conor" {
   type = string
 }
-
 
 variable "ari" {
   type = string
