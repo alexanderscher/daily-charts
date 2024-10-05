@@ -25,8 +25,8 @@ CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
 USER_ID = os.getenv("SPOTIFY_USER_ID")
 CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
 
-SPOTIFY_CHARTS_USERNAME = os.getenv("SPOTIFY_CHARTS_USERNAME")
-SPOTIFY_CHARTS_PASSWORD = os.getenv("SPOTIFY_CHARTS_PASSWORD")
+SPOTIFY_CHART_USERNAME = os.getenv("SPOTIFY_CHART_USERNAME")
+SPOTIFY_CHART_PASSWORD = os.getenv("SPOTIFY_CHART_PASSWORD")
 
 
 class Scrape:
@@ -60,11 +60,11 @@ class Scrape:
 
             input_username.click()
             input_username.clear()
-            input_username.send_keys(SPOTIFY_CHARTS_USERNAME)
+            input_username.send_keys(SPOTIFY_CHART_USERNAME)
             time.sleep(2)
             input_password.click()
             input_password.clear()
-            input_password.send_keys(SPOTIFY_CHARTS_PASSWORD)
+            input_password.send_keys(SPOTIFY_CHART_PASSWORD)
             time.sleep(2)
             button_log_in = self.driver.find_element(
                 By.CLASS_NAME, "ButtonInner-sc-14ud5tc-0"
