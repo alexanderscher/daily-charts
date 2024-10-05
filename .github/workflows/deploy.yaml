@@ -85,6 +85,7 @@ jobs:
             -var "spotify_client_secret=${{ secrets.SPOTIFY_CLIENT_SECRET }}" \
             -var "spotify_user_id=${{ secrets.SPOTIFY_USER_ID }}" \
             -var "alex=${{ secrets.ALEX }}" \
+            -var "alex_mail=${{ secrets.ALEX_MAIL }}" \
             -var "conor=${{ secrets.CONOR }}" \
             -var "ari=${{ secrets.ARI }}" \
             -var "laura=${{ secrets.LAURA }}" \
@@ -105,6 +106,7 @@ jobs:
           -var "spotify_client_secret=${{ secrets.SPOTIFY_CLIENT_SECRET }}" \
           -var "spotify_user_id=${{ secrets.SPOTIFY_USER_ID }}" \
           -var "alex=${{ secrets.ALEX }}" \
+          -var "alex_mail=${{ secrets.ALEX_MAIL }}" \
           -var "conor=${{ secrets.CONOR }}" \
           -var "ari=${{ secrets.ARI }}" \
           -var "laura=${{ secrets.LAURA }}" \

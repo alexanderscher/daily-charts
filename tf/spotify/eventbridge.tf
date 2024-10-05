@@ -6,7 +6,8 @@ resource "aws_scheduler_schedule" "spotify_charts_schedule" {
     mode = "OFF"
   }
 
-  schedule_expression          = "cron(15 16 05 10 ? 2024)"
+  # Run at 9 AM every day in America/Los_Angeles timezone
+  schedule_expression          = "cron(0 9 * * ? *)"
   schedule_expression_timezone = "America/Los_Angeles"
 
   target {

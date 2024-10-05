@@ -463,7 +463,7 @@ def send_email(subject, body) -> None:
     try:
         response = ses_client.send_email(
             Destination={
-                "ToAddresses": [os.getenv("ALEX")],
+                "ToAddresses": [os.getenv("ALEX_MAIL")],
             },
             Message={
                 "Body": {
