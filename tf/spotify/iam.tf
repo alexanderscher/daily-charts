@@ -1,4 +1,3 @@
-# IAM Role for store-turn Lambda
 resource "aws_iam_role" "charts_role" {
   name = "charts-role"
 
@@ -14,7 +13,6 @@ resource "aws_iam_role" "charts_role" {
   })
 }
 
-# Policy for store-turn Lambda to send emails and create logs
 resource "aws_iam_role_policy" "charts_policy" {
   name = "charts-policy"
   role = aws_iam_role.charts_role.id
