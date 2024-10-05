@@ -7,13 +7,8 @@ import pandas as pd
 import os
 import boto3
 import datetime
-from io import BytesIO
 import sys
 from tempfile import mkdtemp
-from docx import Document
-from docx.enum.text import WD_COLOR_INDEX
-from docx.shared import Pt
-from docx.enum.text import WD_COLOR_INDEX
 
 pd.set_option("display.max_rows", None)
 pd.set_option("display.max_columns", None)
@@ -37,6 +32,9 @@ class Scrape:
         self.db = FetchDB()
         self.df = []
         self.us = []
+        self.l2tk_chart = []
+        self.other = []
+        self.prospect_list = []
         self.driver = driver
         self.pub_songs = self.db.get_pub_songs()
         self.pub_artists = self.db.get_pub_artists()
@@ -45,9 +43,6 @@ class Scrape:
         self.signed_artists = self.db.get_signed_artists()
         self.prospects = self.db.get_prospects()
         self.client = SpotifyAPI(CLIENT_ID, USER_ID, CLIENT_SECRET)
-        self.l2tk_chart = []
-        self.other = []
-        self.prospect_list = []
 
     def spotify_signin(self):
         try:
@@ -500,26 +495,26 @@ def send_email(subject, body) -> None:
 def scrape_all():
 
     options = webdriver.ChromeOptions()
-    # options.binary_location = "/opt/chrome/chrome"
-    # options.add_argument("--headless=new")
-    # options.add_argument("--no-sandbox")
-    # options.add_argument("--disable-gpu")
-    # options.add_argument("--window-size=1963x1696")
-    # options.add_argument("--single-process")
-    # options.add_argument("--disable-dev-shm-usage")
-    # options.add_argument("--disable-dev-tools")
-    # options.add_argument("--no-zygote")
-    # options.add_argument(f"--user-data-dir={mkdtemp()}")
-    # options.add_argument(f"--data-path={mkdtemp()}")
-    # options.add_argument(f"--disk-cache-dir={mkdtemp()}")
-    # options.add_argument("--remote-debugging-port=9222")
-    # service = webdriver.ChromeService("/opt/chromedriver")
+    options.binary_location = "/opt/chrome/chrome"
+    options.add_argument("--headless=new")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--window-size=1963x1696")
+    options.add_argument("--single-process")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-dev-tools")
+    options.add_argument("--no-zygote")
+    options.add_argument(f"--user-data-dir={mkdtemp()}")
+    options.add_argument(f"--data-path={mkdtemp()}")
+    options.add_argument(f"--disk-cache-dir={mkdtemp()}")
+    options.add_argument("--remote-debugging-port=9222")
+    service = webdriver.ChromeService("/opt/chromedriver")
 
     # local
-    from selenium.webdriver.chrome.service import Service
-    from webdriver_manager.chrome import ChromeDriverManager
+    # from selenium.webdriver.chrome.service import Service
+    # from webdriver_manager.chrome import ChromeDriverManager
 
-    service = Service(ChromeDriverManager().install())
+    # service = Service(ChromeDriverManager().install())
 
     driver = webdriver.Chrome(service=service, options=options)
     scrape = Scrape(driver)
@@ -528,37 +523,37 @@ def scrape_all():
         "SPOTIFY GLOBAL",
         "https://charts.spotify.com/charts/view/regional-global-daily/latest",
     )
-    # scrape.spotify(
-    #     "SPOTIFY USA", "https://charts.spotify.com/charts/view/regional-us-daily/latest"
-    # )
-    # scrape.spotify(
-    #     "SPOTIFY CA", "https://charts.spotify.com/charts/view/regional-ca-daily/latest"
-    # )
-    # scrape.spotify(
-    #     "SPOTIFY UK",
-    #     "https://charts.spotify.com/charts/view/regional-gb-daily/latest",
-    # )
-    # scrape.spotify(
-    #     "SPOTIFY VIRAL GLOBAL",
-    #     "https://charts.spotify.com/charts/view/viral-global-daily/latest",
-    # )
+    scrape.spotify(
+        "SPOTIFY USA", "https://charts.spotify.com/charts/view/regional-us-daily/latest"
+    )
+    scrape.spotify(
+        "SPOTIFY CA", "https://charts.spotify.com/charts/view/regional-ca-daily/latest"
+    )
+    scrape.spotify(
+        "SPOTIFY UK",
+        "https://charts.spotify.com/charts/view/regional-gb-daily/latest",
+    )
+    scrape.spotify(
+        "SPOTIFY VIRAL GLOBAL",
+        "https://charts.spotify.com/charts/view/viral-global-daily/latest",
+    )
 
     scrape.spotify(
         "SPOTIFY VIRAL US",
         "https://charts.spotify.com/charts/view/viral-us-daily/latest",
     )
-    # scrape.spotify(
-    #     "SPOTIFY VIRAL CA",
-    #     "https://charts.spotify.com/charts/view/viral-CA-daily/latest",
-    # )
-    # scrape.spotify(
-    #     "SPOTIFY VIRAL NZ",
-    #     "https://charts.spotify.com/charts/view/viral-nz-daily/latest",
-    # )
-    # scrape.spotify(
-    #     "SPOTIFY VIRAL UK",
-    #     "https://charts.spotify.com/charts/view/viral-gb-daily/latest",
-    # )
+    scrape.spotify(
+        "SPOTIFY VIRAL CA",
+        "https://charts.spotify.com/charts/view/viral-CA-daily/latest",
+    )
+    scrape.spotify(
+        "SPOTIFY VIRAL NZ",
+        "https://charts.spotify.com/charts/view/viral-nz-daily/latest",
+    )
+    scrape.spotify(
+        "SPOTIFY VIRAL UK",
+        "https://charts.spotify.com/charts/view/viral-gb-daily/latest",
+    )
     scrape.driver.quit()
     scrape.chart_search()
     body = scrape.create_html()

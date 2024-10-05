@@ -1,0 +1,99 @@
+name: Deploy Store Turn
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the Code
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Configure AWS Credentials using GitHub Secrets
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: arn:aws:iam::742736545134:role/store-turn-github-action
+          aws-region: us-east-1
+
+      - name: Check STS Identity
+        run: aws sts get-caller-identity
+
+      # Step 3: Cleanup old ECR images before building new one
+      - name: Cleanup ECR Images
+        run: |
+          IMAGES=$(aws ecr list-images --repository-name spotify-charts-ecr --query 'imageIds[*]' --output json)
+          if [ "$IMAGES" != "[]" ]; then
+            aws ecr batch-delete-image \
+              --repository-name spotify-charts-ecr \
+              --image-ids "$IMAGES"
+          else
+            echo "No images to delete."
+          fi
+
+      # Step 4: Set up Docker Buildx (needed for multi-platform builds)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Step 5: Log in to Amazon ECR to push the image
+      - name: Log in to Amazon ECR
+        run: |
+          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 742736545134.dkr.ecr.us-east-1.amazonaws.com
+
+      # Step 6: Build and Push the Docker image to ECR
+      - name: Build and Push Docker Image to ECR
+        run: |
+          docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/spotify-charts-ecr:latest --push --provenance=false ./apple
+
+      # Step 7: Update the Lambda function with the new image
+      - name: Update Lambda Function with New Image
+        run: |
+          aws lambda update-function-code \
+            --function-name spotify-charts \
+            --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/spotify-charts-ecr:latest
+
+      # Step 8: Install Terraform
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      # Step 9: Initialize Terraform
+      - name: Initialize Terraform
+        run: terraform init
+        working-directory: ./tf/setup
+
+      # Step 10: Validate Terraform configuration
+      - name: Validate Terraform
+        run: terraform validate
+        working-directory: ./tf/setup
+
+      # Step 11: Plan Terraform changes
+      - name: Terraform Plan
+
+        run: |
+          terraform plan \
+            -var "aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}" \
+            -var "aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+            -var "spotify_client_id=${{ secrets.SPOTIFY_CLIENT_ID }}" \
+            -var "spotify_client_secret=${{ secrets.SPOTIFY_CLIENT_SECRET }}" \
+            -var "spotify_user_id=${{ secrets.SPOTIFY_USER_ID }}"
+        working-directory: ./tf/setup
+
+      # Step 12: Apply Terraform changes
+      - name: Apply Terraform Changes
+
+        run: |
+          terraform apply -auto-approve \
+          -var "aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}" \
+          -var "aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+          -var "spotify_client_id=${{ secrets.SPOTIFY_CLIENT_ID }}" \
+          -var "spotify_client_secret=${{ secrets.SPOTIFY_CLIENT_SECRET }}" \
+          -var "spotify_user_id=${{ secrets.SPOTIFY_USER_ID }}"
+        working-directory: ./tf/setup

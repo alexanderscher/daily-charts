@@ -24,15 +24,14 @@ variable "aws_secret_access_key" {
   type = string
 }
 
-
-variable "apple_team_id" {
+variable "conor" {
   type = string
 }
 
-variable "apple_key_id" {
+
+variable "ari" {
   type = string
 }
-
-variable "apple_private_key" {
+variable "laura" {
   type = string
 }
