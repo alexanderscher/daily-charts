@@ -35,6 +35,9 @@ variable "conor" {
   type = string
 }
 
+variable "micah" {
+  type = string
+}
 variable "ari" {
   type = string
 }
@@ -52,3 +55,4 @@ variable "spotify_chart_password" {
 variable "db_password" {
   type = string
 }
+

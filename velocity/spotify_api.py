@@ -252,3 +252,29 @@ class SpotifyAPI(object):
             print(f"Exception: {e}")
             time.sleep(30)
             return self.get_artist_copy(artist_name, coming_from, search_type, offset)
+
+    def get_playlist_songs(self, id):
+        df = []
+        access_token = self.get_access_token()
+
+        headers = {"Authorization": f"Bearer {access_token}"}
+        playlist_endpoint = f"https://api.spotify.com/v1/playlists/{id}/tracks"
+
+        r = requests.get(playlist_endpoint, headers=headers).json()
+        playlist_items = r["items"]
+
+        url = f"https://api.spotify.com/v1/playlists/{id}/tracks"
+        while url:
+            r = requests.get(url, headers=headers).json()
+            playlist_items = r["items"]
+
+            for song in playlist_items:
+                added_at = song["added_at"]
+                artist_name = song["track"]["artists"][0]["name"]
+                track_name = song["track"]["name"]
+
+                df.append((artist_name, track_name, added_at))
+
+            url = r.get("next")
+
+        return df

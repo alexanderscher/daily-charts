@@ -89,6 +89,7 @@ jobs:
             -var "conor=${{ secrets.CONOR }}" \
             -var "ari=${{ secrets.ARI }}" \
             -var "laura=${{ secrets.LAURA }}" \
+            -var "micah=${{ secrets.MICAH }}" \
             -var "spotify_chart_username=${{ secrets.SPOTIFY_CHART_USERNAME }}" \
             -var "spotify_chart_password=${{ secrets.SPOTIFY_CHART_PASSWORD }}" \
             -var "db_password=${{ secrets.DB_PASSWORD }}" \
@@ -110,6 +111,7 @@ jobs:
           -var "conor=${{ secrets.CONOR }}" \
           -var "ari=${{ secrets.ARI }}" \
           -var "laura=${{ secrets.LAURA }}" \
+          -var "micah=${{ secrets.MICAH }}" \
           -var "spotify_chart_username=${{ secrets.SPOTIFY_CHART_USERNAME }}" \
           -var "spotify_chart_password=${{ secrets.SPOTIFY_CHART_PASSWORD }}" \
           -var "db_password=${{ secrets.DB_PASSWORD }}" \

@@ -141,41 +141,25 @@ class Scrape:
             artist = song_anchors[2].text
 
             def callback():
-                if peak == position:
-                    mov = (
-                        dvg_table_data[i * dvg_columns + 1]
-                        .find_elements(By.XPATH, ".//span")[1]
-                        .text
+                if not list(
+                    filter(lambda x: (x.lower() == artist.lower()), self.signed_artists)
+                ):
+                    self.df.append(
+                        (name, position, artist, track, ch, None, None, date)
                     )
-                    no_bueno = " – "
-                    if mov != no_bueno:
-                        self.df.append(
-                            (name, position, artist, track, ch, None, None, date)
-                        )
 
-            if peak == position:
-                mov = (
-                    dvg_table_data[i * dvg_columns + 1]
-                    .find_elements(By.XPATH, ".//span")[1]
-                    .text
+            if mov == "New":
+                self.check_roster(
+                    name,
+                    position,
+                    artist,
+                    track,
+                    "NEW",
+                    days,
+                    peak,
+                    date,
+                    callback,
                 )
-                no_bueno = " – "
-                if mov != no_bueno:
-                    self.check_roster(
-                        name,
-                        position,
-                        artist,
-                        track,
-                        f"{ch} (peak)",
-                        days,
-                        peak,
-                        date,
-                        callback,
-                    )
-                else:
-                    self.check_roster(
-                        name, position, artist, track, f"{ch}", days, peak, date, None
-                    )
             else:
                 self.check_roster(
                     name, position, artist, track, f"{ch}", days, peak, date, None
@@ -338,6 +322,7 @@ class Scrape:
         conor = os.getenv("CONOR")
         ari = os.getenv("ARI")
         laura = os.getenv("LAURA")
+        micah = os.getenv("MICAH")
 
         final_df = unsigned = pd.DataFrame(
             self.us,
@@ -369,7 +354,7 @@ class Scrape:
         <body>
         <p>
             Spotify Chart Report - {datetime.datetime.now().strftime("%m/%d/%y")}
-            <br> {conor}, {ari}, {laura}
+            <br> {conor}, {ari}, {laura}, {micah}
         </p>
         """
 
