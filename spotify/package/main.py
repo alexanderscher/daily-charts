@@ -318,7 +318,7 @@ class Scrape:
                             )
                         )
 
-    def create_html(self):
+    def create_html(self, type):
         conor = os.getenv("CONOR")
         ari = os.getenv("ARI")
         laura = os.getenv("LAURA")
@@ -341,14 +341,17 @@ class Scrape:
                 "Date",
             ],
         )
+
         html_body = f"""
         <html>
         <head>
         <style>
-            body {{ font-family: Arial, sans-serif; font-size: 12px; }}
+            body {{ font-family: Arial, sans-serif; font-size: 12px; color: black; }}
             h2 {{ font-size: 14px; font-weight: bold; }}
-            .prospect {{ color: red; }}
-            .other {{ color: yellow; }}
+            a {{ color: black; text-decoration: none; }} /* Unvisited link */
+            a:visited {{ color: black; text-decoration: none; }} /* Visited link */
+            a:hover {{ text-decoration: underline; }} /* Hover effect */
+            .indent {{ padding-left: 20px; }} 
         </style>
         </head>
         <body>
@@ -363,11 +366,7 @@ class Scrape:
         def add_content_and_header(chart, date):
             nonlocal html_body
             if self.l2tk_chart or self.other or self.prospect_list:
-                header_text = (
-                    f"{chart.upper()}</strong>"
-                    if pd.isna(date)
-                    else f"<br><br><strong style='text-decoration: underline;'>{chart.upper()} - {date.upper()}</strong><br><br>"
-                )
+                header_text = f"<br><br><strong style='text-decoration: underline;'>{chart.upper()} - {date.upper()}</strong><br><br>"
                 html_body += header_text
 
                 if self.l2tk_chart:
@@ -385,7 +384,7 @@ class Scrape:
                 if self.other:
                     html_body += "<br><p>NEW ADDS:</p>"
                     for p in self.other:
-                        html_body += f"<p><mark>{p['c']}</mark></p>"
+                        html_body += f"<p>{p['c']}</p>"
 
             self.l2tk_chart = []
             self.prospect_list = []
@@ -413,24 +412,39 @@ class Scrape:
                     add_content_and_header(chart_header, date)
 
                 chart_header = chart
+            if type == "chart":
+                if l2tk == "L2TK":
+                    if artist.lower() in self.prospects:
+                        self.prospect_list.append(
+                            f"""
+                            {position}. {artist} - {song} ({'=' if movement == '0' else movement})<br>
+                            <span class='indent'>• Days on chart: {day}</span><br>
+                            <span class='indent'>• Peak: {peak}</span>
+                            """
+                        )
 
-            if l2tk == "L2TK":
-                if artist.lower() in self.prospects:
-                    self.prospect_list.append(
-                        f"{position}. {artist}  -  {song} ({'=' if movement == '0' else movement})<br>&nbsp&nbsp• Days on chart: {day}<br>&nbsp&nbsp• Peak: {peak}"
+                if movement == "NEW" and unsigned == "UNSIGNED":
+                    self.other.append(
+                        {
+                            "c": f"""
+                            {position}. {artist} - {song} ({movement})<br>
+                            <span class='indent'>• Label: {label} (UNSIGNED)</span><br>
+                            <span class='indent'>• <a href='{link}'>{link}</a></span>
+                            """,
+                            "h": True,
+                        }
                     )
-                else:
-                    self.l2tk_chart.append(
-                        f"{position}. {artist}  -  {song} ({'=' if movement == '0' else movement}) (L2TK)<br>&nbsp&nbsp• Days on chart: {day}<br>&nbsp&nbsp• Peak: {peak}"
-                    )
+            else:
+                if l2tk == "L2TK":
+                    if artist.lower() not in self.prospects:
+                        self.l2tk_chart.append(
+                            f"""
+                            {position}. {artist} - {song} ({'=' if movement == '0' else movement}) (L2TK)<br>
+                            <span class='indent'>• Days on chart: {day}</span><br>
+                            <span class='indent'>• Peak: {peak}</span>
+                            """
+                        )
 
-            if movement == "NEW" and unsigned == "UNSIGNED":
-                self.other.append(
-                    {
-                        "c": f"{position}. {artist} -  {song} ({movement})<br>&nbsp&nbsp• Label: {label} (UNSIGNED)<br>&nbsp&nbsp• {link}",
-                        "h": True,
-                    }
-                )
         add_content_and_header(chart_header, date)
 
         html_body += "</body></html>"
@@ -534,8 +548,16 @@ def scrape_all():
     )
     scrape.driver.quit()
     scrape.chart_search()
-    body = scrape.create_html()
-    subject = f'Spotify Chart Report - {datetime.datetime.now().strftime("%m/%d/%y")}'
+    body = scrape.create_html("roster")
+    subject = (
+        f'Spotify Roster Report test - {datetime.datetime.now().strftime("%m/%d/%y")}'
+    )
+    send_email(subject, body)
+
+    body = scrape.create_html("chart")
+    subject = (
+        f'Spotify Chart Report test - {datetime.datetime.now().strftime("%m/%d/%y")}'
+    )
     send_email(subject, body)
 
 

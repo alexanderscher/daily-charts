@@ -3,7 +3,6 @@ from botocore.exceptions import ClientError
 import pandas as pd
 import os
 import boto3
-import datetime
 import re
 
 pd.set_option("display.max_rows", None)
@@ -13,7 +12,7 @@ pd.set_option("display.colheader_justify", "center")
 pd.set_option("display.precision", 3)
 
 from db.get_db import FetchDB
-from spotify_api import SpotifyAPI
+from velocity.package.spotify_api import SpotifyAPI
 
 CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
 USER_ID = os.getenv("SPOTIFY_USER_ID")
@@ -71,7 +70,7 @@ def velocity():
                         )
 
 
-def create_html(self):
+def create_html():
     conor = os.getenv("CONOR")
     ari = os.getenv("ARI")
     laura = os.getenv("LAURA")
@@ -83,27 +82,32 @@ def create_html(self):
         <html>
         <head>
         <style>
-            body {{ font-family: Arial, sans-serif; font-size: 12px; }}
-            h2 {{ font-size: 14px; font-weight: bold; }}
-            .prospect {{ color: red; }}
-            .other {{ color: yellow; }}
+            body {{ font-family: Arial, sans-serif; font-size: 12px; color: black; }}  /* Ensures body text is black */
+            h2 {{ font-size: 14px; font-weight: bold; color: black; }}  /* Ensures h2 text is black */
+            p {{ color: black; }}  /* Ensures <p> text is black */
+            strong {{ color: black; }}  /* Ensures <strong> text is black */
+            .indent {{ padding-left: 20px; color: black; }}  /* Ensures indented text is black */
+            a {{ color: black; }}  /* Ensures links are black (if you don't want default blue links) */
         </style>
         </head>
         <body>
         <p>
-            Veloctiy Report - {datetime.datetime.now().strftime("%m/%d/%y")}
+            Velocity Report - {datetime.now().strftime("%m/%d/%y")}
             <br> {conor}, {ari}, {laura}, {micah}
         </p>
-        """
+    """
 
-    html_body += f"<strong>{chart.upper()}</strong>"
+    html_body += (
+        f"<br><br><strong style='text-decoration: underline;'>VELOCITY</strong><br><br>"
+    )
     html_body += "<br><p>NEW ADDS:</p>"
 
     for chart, artist, song, link, label in final_df.itertuples(index=False):
-
-        for p in self.other:
-            html_body += f"<p><mark>{p['c']}</mark></p>"
-
+        html_body += f"""
+            <p>{artist} - {song}<br>
+            <span class='indent'>• Label: {label}</span><br>
+            <span class='indent'>• <a href='{link}'>{link}</a></span></p>
+        """
     html_body += "</body></html>"
 
     return html_body
@@ -144,7 +148,7 @@ def send_email(subject, body) -> None:
 def scrape_all():
     velocity()
     body = create_html()
-    subject = f'Velocity  Report - {datetime.datetime.now().strftime("%m/%d/%y")}'
+    subject = f'Velocity  Report - {datetime.now().strftime("%m/%d/%y")}'
     send_email(subject, body)
 
 
