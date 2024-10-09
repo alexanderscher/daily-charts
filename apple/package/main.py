@@ -85,9 +85,13 @@ class AppleMusicAPI:
         self.apple_df = []
         self.driver = driver
         self.roster_artists = db.get_roster_artists()
+        self.majorlabels = db.get_major_labels()
         self.signed_artists = db.get_signed_artists()
         self.pub_songs = db.get_pub_songs()
         self.pub_artists = db.get_pub_artists()
+        self.pub_albums = db.get_pub_albums()
+        self.spotify_client = SpotifyAPI(CLIENT_ID, USER_ID, CLIENT_SECRET)
+        self.us = []
 
     def token_is_valid(self):
         return (
@@ -287,6 +291,139 @@ class AppleMusicAPI:
                         (name, i + 1, artist, song, None, None, None, None)
                     )
 
+    def get_copyright_info(self, artist, song, chart_type, source="spotify"):
+        artist = artist.lower()
+
+        # Determine whether to fetch album or track data
+        if "album" in chart_type.lower():
+            method = self.spotify_client.get_artist_copy_album()
+        else:
+            method = self.spotify_client.get_artist_copy_track()
+
+        copyright = method(artist, song, source)
+        return copyright
+
+    def chart_search(self, apple_data):
+
+        for i, row in apple_data.iloc[:].iterrows():
+            chart = row["Chart"]
+            position = row["Position"]
+            ogartist = row["Artist"]
+            song = row["Song"] if type(row["Song"]) != float else "NA"
+            movement = row["Movement"]
+            label = row["Label"]
+
+            if " & " in ogartist:
+                artist = ogartist.split(" & ")[0]
+            else:
+                artist = ogartist
+
+            artist_exists = any(
+                art.lower() in artist.lower() for art in self.roster_artists
+            )
+            song_exists_in_album = (
+                check_prod_albums(self.pub_albums, self.pub_artists, song, artist)
+                if "album" in chart.lower()
+                else False
+            )
+            checked_pub = (
+                check_prod(self.pub_songs, self.pub_artists, song, artist)
+                if not song_exists_in_album
+                else False
+            )
+
+            if checked_pub or artist_exists or song_exists_in_album:
+
+                print(f"{position}.", ogartist, "-", song, "(L2TK)")
+                self.us.append(
+                    (
+                        chart,
+                        position,
+                        ogartist,
+                        song,
+                        None,
+                        "L2TK",
+                        movement,
+                        None,
+                        label,
+                    )
+                )
+                continue
+
+            if any(x.lower() == artist.lower() for x in self.signed_artists):
+                print(f"{position}.", ogartist, "-", song, "******")
+                self.us.append(
+                    (chart, position, ogartist, song, None, None, movement, None, label)
+                )
+                continue
+
+            if movement == "New":
+                copyright = None
+                copyright = self.get_copyright_info(artist, song, chart)
+
+                if not copyright and " & " in ogartist:
+                    artist = ogartist
+                    copyright = self.get_copyright_info(artist, song, chart)
+
+                if not copyright or (
+                    "2023" not in copyright[0] and "2024" not in copyright[0]
+                ):
+                    print(f"{position} (OLD):", ogartist, "-", song)
+                    continue
+
+                if copyright:
+
+                    matched_labels = list(
+                        filter(
+                            lambda x: smart_partial_match(x, copyright[0]),
+                            self.majorlabels,
+                        )
+                    )
+
+                    if not matched_labels:
+                        try:
+                            self.us.append(
+                                (
+                                    chart,
+                                    position,
+                                    ogartist,
+                                    song,
+                                    "UNSIGNED",
+                                    None,
+                                    movement,
+                                    copyright[1],
+                                    copyright[0],
+                                )
+                            )
+                        except (IndexError, TypeError):
+                            self.us.append(
+                                (
+                                    chart,
+                                    position,
+                                    ogartist,
+                                    song,
+                                    "UNSIGNED",
+                                    None,
+                                    movement,
+                                    "No Link",
+                                    label,
+                                )
+                            )
+                    else:
+                        self.us.append(
+                            (
+                                chart,
+                                position,
+                                ogartist,
+                                song,
+                                None,
+                                None,
+                                movement,
+                                None,
+                                copyright[0],
+                            )
+                        )
+
 
 def scrape_all():
 
@@ -404,7 +541,10 @@ def scrape_all():
             apple_data.at[i, "Movement"] = "New"
 
     apple_data["Movement"] = apple_data["Movement"].astype(str)
-    return apple_data
+    scrape.chart_search(apple_data)
+    final_data = scrape.us
+
+    return final_data
 
 
 def lambda_handler(event, context):

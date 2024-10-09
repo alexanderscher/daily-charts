@@ -252,3 +252,162 @@ class SpotifyAPI(object):
             print(f"Exception: {e}")
             time.sleep(30)
             return self.get_artist_copy(artist_name, coming_from, search_type, offset)
+
+    def get_artist_copy_album(
+        self,
+        artist_name,
+        track,
+        coming_from,
+        search_type="artist",
+        offset=0,
+    ):
+        try:
+            access_token = self.get_access_token()
+            headers = {"Authorization": f"Bearer {access_token}"}
+            endpoint = "https://api.spotify.com/v1/search"
+            data = urlencode(
+                {"q": artist_name, "type": search_type, "limit": 50, "offset": offset}
+            )
+            lookup_url = f"{endpoint}?{data}"
+
+            with requests.get(lookup_url, headers=headers) as r:
+                if r.status_code not in range(200, 299):
+                    if r.status_code == 404:
+                        time.sleep(10)
+                        with requests.get(lookup_url, headers=headers) as retry_r:
+                            if retry_r.status_code == 404:
+                                return None
+                    elif r.status_code == 400:
+                        return None
+                resp = r.json()
+
+            def refine_artist_name(name, source):
+                split_terms = {
+                    "daily_chart": [
+                        ", ",
+                        " (",
+                        " (@",
+                        " featuring ",
+                        " feat. ",
+                        "Genius English Translations - ",
+                        " X ",
+                        " / ",
+                    ],
+                    "spotify": [", ", " (", " featuring ", "feat."],
+                    "shazam": [", ", " & ", " X "],
+                }
+                for term in split_terms.get(source, []):
+                    if term in name:
+                        return name.split(term)[0]
+                return name
+
+            refined_name = refine_artist_name(artist_name, coming_from)
+
+            if refined_name != artist_name:
+                return self.get_artist_copy_album(
+                    refined_name, coming_from, search_type, offset
+                )
+
+            for artist in resp.get("artists", {}).get("items", []):
+                if (
+                    artist_name.lower() == artist["name"].lower()
+                    and artist["popularity"] > 15
+                ):
+                    artist_id = artist["id"]
+                    endpoint = f"https://api.spotify.com/v1/artists/{artist_id}/albums?include_groups=album,single"
+
+                    all_albums = []
+
+                    while endpoint:
+                        r = requests.get(endpoint, headers=headers)
+
+                        if r.status_code not in range(200, 299):
+                            if r.status_code == 404:
+                                time.sleep(10)
+                                continue
+                            elif r.status_code == 400:
+                                print("Bad request")
+                                break
+
+                        resp = r.json()
+                        all_albums.extend(resp.get("items", []))
+
+                        endpoint = resp.get("next")
+
+                    url = None
+                    artist_url = None
+                    label = None
+
+                    for item in all_albums:
+                        album_id = item["id"]
+                        found = False
+
+                        artists = item["artists"]
+                        for artist in artists:
+                            if (
+                                artist["name"].lower()
+                                == artist_name.lower().split(" (")[0]
+                            ):
+                                artist_url = artist["external_urls"]["spotify"]
+
+                        if item["name"].lower().split(" (")[0] == track.lower():
+
+                            url = item["external_urls"]["spotify"]
+                            album_endpoint = (
+                                f"https://api.spotify.com/v1/albums/{album_id}"
+                            )
+                            with requests.get(
+                                album_endpoint, headers=headers
+                            ) as album_response:
+                                album_data = album_response.json()
+
+                            if "copyrights" in album_data and album_data["copyrights"]:
+                                copyright = album_data["copyrights"][0]["text"]
+                                label = copyright
+                            else:
+                                label = None
+                            found = True
+
+                        if found:
+                            break
+
+                    if url == None:
+                        url = artist_url
+
+                    if label == None:
+                        filtered_items = [
+                            item
+                            for item in all_albums
+                            if item["artists"][0]["name"].lower() == artist_name.lower()
+                        ]
+                        if not filtered_items:
+                            return ("Not On Spotify: Look Up", None)
+
+                        latest_album = sorted(
+                            filtered_items,
+                            key=lambda x: x["release_date"],
+                            reverse=True,
+                        )[0]
+
+                        album_id = latest_album["id"]
+                        album_endpoint = f"https://api.spotify.com/v1/albums/{album_id}"
+                        with requests.get(
+                            album_endpoint, headers=headers
+                        ) as album_response:
+                            album_data = album_response.json()
+
+                        label = None
+
+                        if "copyrights" in album_data and album_data["copyrights"]:
+                            copyright = album_data["copyrights"][0]["text"]
+                            label = copyright
+
+                        else:
+                            label = "No Copyright Information"
+
+                    return (label, url)
+
+        except Exception as e:
+            print(f"Exception: {e}")
+            time.sleep(30)
+            return self.get_artist_copy(artist_name, coming_from, search_type, offset)

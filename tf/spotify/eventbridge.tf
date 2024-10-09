@@ -29,6 +29,6 @@ resource "aws_scheduler_schedule" "veloctiy_schedule" {
 
   target {
     arn      = "arn:aws:lambda:us-east-1:742736545134:function:velocity"
-    role_arn = aws_iam_role.store_turn_scheduler_role.arn
+    role_arn = aws_iam_role.charts_scheduler_role.arn
   }
 }
