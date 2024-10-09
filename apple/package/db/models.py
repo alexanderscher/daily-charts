@@ -49,3 +49,18 @@ class Prospect(Base):
     __tablename__ = "prospects"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
+
+
+class AppleCharts(Base):
+    __tablename__ = "apple_charts"
+    id = Column(Integer, primary_key=True, index=True)
+    chart = Column(String)
+    position = Column(Integer)
+    artist = Column(String)
+    song = Column(String)
+    unsigned = Column(String)
+    l2tk = Column(String)
+    movement = Column(String)
+    link = Column(String)
+    label = Column(String)
+    date = Column(Date)

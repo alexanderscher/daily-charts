@@ -1,11 +1,14 @@
 from .db_conn import (
     SessionLocal,
 )
+from sqlalchemy import exists
+from datetime import datetime
 from .models import SignedArtists
 from .models import MajorLabels
 from .models import RosterArtists
 from .models import RosterSongs
 from .models import Prospect
+from .models import AppleCharts
 
 
 class FetchDB:
@@ -106,6 +109,58 @@ class FetchDB:
             return prospect
 
         except Exception as e:
+            print(f"An error occurred: {e}")
+
+        finally:
+            session.close()
+
+    def insert_apple_charts(self, data):
+        session = SessionLocal()
+        current_date = datetime.now().date()
+
+        try:
+            date_exists = session.query(
+                exists().where(AppleCharts.date == current_date)
+            ).scalar()
+
+            if not date_exists:
+
+                for (
+                    chart,
+                    position,
+                    artist,
+                    song,
+                    unsigned,
+                    l2tk,
+                    movement,
+                    link,
+                    label,
+                ) in data.itertuples(index=False):
+
+                    movement = str(movement) if movement is not None else "0"
+                    label = str(label)
+
+                    new_chart_entry = AppleCharts(
+                        chart=chart,
+                        position=position,
+                        artist=artist,
+                        song=song,
+                        unsigned=unsigned,
+                        l2tk=l2tk,
+                        movement=movement,
+                        link=link,
+                        label=label,
+                        date=current_date,
+                    )
+
+                    session.add(new_chart_entry)
+
+                session.commit()
+                print("Data inserted successfully.")
+            else:
+                print("Data for the current date already exists in the database.")
+        except Exception as e:
+            session.rollback()
             print(f"An error occurred: {e}")
 
         finally:
