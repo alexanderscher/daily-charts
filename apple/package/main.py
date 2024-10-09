@@ -203,15 +203,61 @@ class AppleMusicAPI:
                             (name, p + 1, artist, album, None, None, None, None)
                         )
                     else:
-                        if not list(
-                            filter(
-                                lambda x: (x.lower() == artist.lower()),
-                                self.signed_artists,
-                            )
-                        ):
-                            self.apple_df.append(
-                                (name, p + 1, artist, album, None, None, None, None)
-                            )
+                        if " & " in artist:
+                            andpersand = artist.split(" & ")[0]
+                            if list(
+                                filter(
+                                    lambda x: (x.lower() == andpersand.lower()),
+                                    self.signed_artists,
+                                )
+                            ):
+                                continue
+                            else:
+                                self.apple_df.append(
+                                    (name, i + 1, artist, album, None, None, None, None)
+                                )
+                                print(f"{artist} not in signed")
+                        elif " featuring " in artist:
+                            feat = artist.split(" featuring ")[0]
+                            if list(
+                                filter(
+                                    lambda x: (x.lower() == feat.lower()),
+                                    self.signed_artists,
+                                )
+                            ):
+                                print(f"{artist} in signed")
+                                continue
+                            else:
+                                self.apple_df.append(
+                                    (name, i + 1, feat, album, None, None, None, None)
+                                )
+                                print(f"{artist} not in signed")
+                        elif ", " in artist:
+                            comma = artist.split(", ")[0]
+                            if list(
+                                filter(
+                                    lambda x: (x.lower() == comma.lower()),
+                                    self.signed_artists,
+                                )
+                            ):
+                                print(f"{artist} in signed")
+                                continue
+                            else:
+                                self.apple_df.append(
+                                    (name, i + 1, comma, album, None, None, None, None)
+                                )
+                                print(f"{artist} not in signed")
+                        else:
+                            if not list(
+                                filter(
+                                    lambda x: (x.lower() == artist.lower()),
+                                    self.signed_artists,
+                                )
+                            ):
+                                self.apple_df.append(
+                                    (name, p + 1, artist, album, None, None, None, None)
+                                )
+                                print(f"{artist} not in signed")
                     p += 1
 
             self.offset += 20
@@ -242,14 +288,61 @@ class AppleMusicAPI:
                 if checked_pub or artist_exists:
                     self.apple_df.append((name, i + 1, artist, song, None, None, None))
                 else:
-                    if not list(
-                        filter(
-                            lambda x: (x.lower() == artist.lower()), self.signed_artists
-                        )
-                    ):
-                        self.apple_df.append(
-                            (name, i + 1, artist, song, None, None, None)
-                        )
+                    if " & " in artist:
+                        andpersand = artist.split(" & ")[0]
+                        if list(
+                            filter(
+                                lambda x: (x.lower() == andpersand.lower()),
+                                self.signed_artists,
+                            )
+                        ):
+                            continue
+                        else:
+                            self.apple_df.append(
+                                (name, i + 1, artist, song, None, None, None, None)
+                            )
+                            print(f"{artist} not in signed")
+                    elif " featuring " in artist:
+                        feat = artist.split(" featuring ")[0]
+                        if list(
+                            filter(
+                                lambda x: (x.lower() == feat.lower()),
+                                self.signed_artists,
+                            )
+                        ):
+
+                            continue
+                        else:
+                            self.apple_df.append(
+                                (name, i + 1, feat, song, None, None, None, None)
+                            )
+                            print(f"{artist} not in signed")
+                    elif ", " in artist:
+                        comma = artist.split(", ")[0]
+                        if list(
+                            filter(
+                                lambda x: (x.lower() == comma.lower()),
+                                self.signed_artists,
+                            )
+                        ):
+
+                            continue
+                        else:
+                            self.apple_df.append(
+                                (name, i + 1, comma, song, None, None, None, None)
+                            )
+                            print(f"{artist} not in signed")
+                    else:
+                        if not list(
+                            filter(
+                                lambda x: (x.lower() == artist.lower()),
+                                self.signed_artists,
+                            )
+                        ):
+                            self.apple_df.append(
+                                (name, i + 1, artist, song, None, None, None)
+                            )
+                            print(f"{artist} not in signed")
 
         i += 1
 
@@ -575,9 +668,30 @@ def scrape_all():
 
     apple_data["Movement"] = apple_data["Movement"].astype(str)
     scrape.chart_search(apple_data)
-    final_data = scrape.us
+    final_data = unsigned = pd.DataFrame(
+        scrape.us,
+        columns=[
+            "Chart",
+            "Position",
+            "Artist",
+            "Song",
+            "Unsigned",
+            "L2TK",
+            "Movement",
+            "Link",
+            "Label",
+        ],
+    )
 
     return final_data
+
+
+def update_apple_charts():
+    df = scrape_all()
+    db.insert_apple_charts(df)
+
+
+db.insert_apple_charts(unsigned)
 
 
 def lambda_handler(event, context):
