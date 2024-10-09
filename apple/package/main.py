@@ -284,12 +284,45 @@ class AppleMusicAPI:
                     (name, i + 1, artist, song, None, None, None, None)
                 )
             else:
-                if not list(
-                    filter(lambda x: (x.lower() == artist.lower()), self.signed_artists)
-                ):
-                    self.apple_df.append(
-                        (name, i + 1, artist, song, None, None, None, None)
-                    )
+                if " & " in artist:
+                    andpersand = artist.split(" & ")[0]
+                    if list(
+                        filter(
+                            lambda x: (x.lower() == andpersand.lower()),
+                            self.signed_artists,
+                        )
+                    ):
+                        print(f"{artist} in signed")
+                        continue
+                    else:
+                        self.apple_df.append(
+                            (name, i + 1, artist, song, None, None, None, None)
+                        )
+                        print(f"{artist} not in signed")
+                elif " featuring " in artist:
+                    feat = artist.split(" featuring ")[0]
+                    if list(
+                        filter(
+                            lambda x: (x.lower() == feat.lower()), self.signed_artists
+                        )
+                    ):
+                        print(f"{artist} in signed")
+                        continue
+                    else:
+                        self.apple_df.append(
+                            (name, i + 1, feat, song, None, None, None, None)
+                        )
+                        print(f"{artist} not in signed")
+                else:
+                    if not list(
+                        filter(
+                            lambda x: (x.lower() == artist.lower()), self.signed_artists
+                        )
+                    ):
+                        self.apple_df.append(
+                            (name, i + 1, artist, song, None, None, None, None)
+                        )
+                        print(f"{artist} not in signed")
 
     def get_copyright_info(self, artist, song, chart_type, source="spotify"):
         artist = artist.lower()
