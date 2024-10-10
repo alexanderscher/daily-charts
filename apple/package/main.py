@@ -564,50 +564,50 @@ def scrape_all():
         "APPLE MUSIC TOP SONGS - ALL GENRE",
         "https://music.apple.com/us/browse/top-charts/songs/",
     )
-    scrape.apple_music(
-        "APPLE MUSIC TOP SONGS - HIP-HOP",
-        "https://music.apple.com/us/browse/top-charts/songs/?genreId=18",
-    )
-    scrape.apple_music(
-        "APPLE MUSIC TOP SONGS - POP",
-        "https://music.apple.com/us/browse/top-charts/songs/?genreId=14",
-    )
-    scrape.apple_music(
-        "APPLE MUSIC TOP SONGS - R&B",
-        "https://music.apple.com/us/browse/top-charts/songs/?genreId=15",
-    )
-    scrape.apple_music(
-        "APPLE MUSIC TOP SONGS - ALTERNATIVE",
-        "https://music.apple.com/us/browse/top-charts/songs/?genreId=20",
-    )
-    scrape.apple_music(
-        "APPLE MUSIC TOP SONGS - ROCK",
-        "https://music.apple.com/us/browse/top-charts/songs/?genreId=21",
-    )
-    scrape.apple_music(
-        "APPLE MUSIC TOP SONGS - COUNTRY",
-        "https://music.apple.com/us/browse/top-charts/songs/?genreId=6",
-    )
-    scrape.apple_music(
-        "APPLE MUSIC TOP SONGS - SINGER SONGWRITER",
-        "https://music.apple.com/us/browse/top-charts/songs/?genreId=10",
-    )
-    scrape.charts("APPLE MUSIC TOP ALBUMS - ALL GENRES", None)
-    scrape.charts("APPLE MUSIC TOP ALBUMS - HIP-HOP", 18)
-    scrape.charts("APPLE MUSIC TOP ALBUMS - ALT", 20)
-    scrape.charts("APPLE MUSIC TOP ALBUMS - POP", 14)
-    scrape.charts("APPLE MUSIC TOP ALBUMS - R&B", 15)
-    scrape.charts("APPLE MUSIC TOP ALBUMS - ROCK", 21)
-    scrape.charts("APPLE MUSIC TOP ALBUMS - COUNTRY", 6)
-    scrape.charts("APPLE MUSIC TOP ALBUMS - SINGER SONGWRITER", 10)
-    scrape.music_videos("APPLE MUSIC TOP MUSIC VIDEOS - ALL GENRES", None)
-    scrape.music_videos("APPLE MUSIC TOP MUSIC VIDEOS - HIP-HOP", 18)
-    scrape.music_videos("APPLE MUSIC TOP MUSIC VIDEOS - ALT", 20)
-    scrape.music_videos("APPLE MUSIC TOP MUSIC VIDEOS - POP", 14)
-    scrape.music_videos("APPLE MUSIC TOP MUSIC VIDEOS - R&B", 15)
-    scrape.music_videos("APPLE MUSIC TOP MUSIC VIDEOS - ROCK", 21)
-    scrape.music_videos("APPLE MUSIC TOP MUSIC VIDEO - COUNTRY", 6)
-    scrape.music_videos("APPLE MUSIC TOP MUSIC VIDEO- SINGER SONGWRITER", 10)
+    # scrape.apple_music(
+    #     "APPLE MUSIC TOP SONGS - HIP-HOP",
+    #     "https://music.apple.com/us/browse/top-charts/songs/?genreId=18",
+    # )
+    # scrape.apple_music(
+    #     "APPLE MUSIC TOP SONGS - POP",
+    #     "https://music.apple.com/us/browse/top-charts/songs/?genreId=14",
+    # )
+    # scrape.apple_music(
+    #     "APPLE MUSIC TOP SONGS - R&B",
+    #     "https://music.apple.com/us/browse/top-charts/songs/?genreId=15",
+    # )
+    # scrape.apple_music(
+    #     "APPLE MUSIC TOP SONGS - ALTERNATIVE",
+    #     "https://music.apple.com/us/browse/top-charts/songs/?genreId=20",
+    # )
+    # scrape.apple_music(
+    #     "APPLE MUSIC TOP SONGS - ROCK",
+    #     "https://music.apple.com/us/browse/top-charts/songs/?genreId=21",
+    # )
+    # scrape.apple_music(
+    #     "APPLE MUSIC TOP SONGS - COUNTRY",
+    #     "https://music.apple.com/us/browse/top-charts/songs/?genreId=6",
+    # )
+    # scrape.apple_music(
+    #     "APPLE MUSIC TOP SONGS - SINGER SONGWRITER",
+    #     "https://music.apple.com/us/browse/top-charts/songs/?genreId=10",
+    # )
+    # scrape.charts("APPLE MUSIC TOP ALBUMS - ALL GENRES", None)
+    # scrape.charts("APPLE MUSIC TOP ALBUMS - HIP-HOP", 18)
+    # scrape.charts("APPLE MUSIC TOP ALBUMS - ALT", 20)
+    # scrape.charts("APPLE MUSIC TOP ALBUMS - POP", 14)
+    # scrape.charts("APPLE MUSIC TOP ALBUMS - R&B", 15)
+    # scrape.charts("APPLE MUSIC TOP ALBUMS - ROCK", 21)
+    # scrape.charts("APPLE MUSIC TOP ALBUMS - COUNTRY", 6)
+    # scrape.charts("APPLE MUSIC TOP ALBUMS - SINGER SONGWRITER", 10)
+    # scrape.music_videos("APPLE MUSIC TOP MUSIC VIDEOS - ALL GENRES", None)
+    # scrape.music_videos("APPLE MUSIC TOP MUSIC VIDEOS - HIP-HOP", 18)
+    # scrape.music_videos("APPLE MUSIC TOP MUSIC VIDEOS - ALT", 20)
+    # scrape.music_videos("APPLE MUSIC TOP MUSIC VIDEOS - POP", 14)
+    # scrape.music_videos("APPLE MUSIC TOP MUSIC VIDEOS - R&B", 15)
+    # scrape.music_videos("APPLE MUSIC TOP MUSIC VIDEOS - ROCK", 21)
+    # scrape.music_videos("APPLE MUSIC TOP MUSIC VIDEO - COUNTRY", 6)
+    # scrape.music_videos("APPLE MUSIC TOP MUSIC VIDEO- SINGER SONGWRITER", 10)
 
     apple_data = pd.DataFrame(
         scrape.apple_df,
@@ -622,8 +622,6 @@ def scrape_all():
             "Date",
         ],
     )
-
-    apple_data["Movement"] = apple_data["Movement"].astype(str)
     data_yesterday = db.get_apple_charts()
     for i, r in apple_data.iterrows():
         pos = r["Position"]
@@ -661,6 +659,7 @@ def scrape_all():
             "Label",
         ],
     )
+    print(final_data)
 
     return final_data
 
@@ -750,7 +749,7 @@ def create_html(type, df, report_name):
                             """
                     )
 
-            if movement == "NEW" and unsigned == "UNSIGNED":
+            if movement == "New" and unsigned == "UNSIGNED":
                 other.append(
                     {
                         "c": f"""
