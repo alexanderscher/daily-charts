@@ -358,13 +358,15 @@ class AppleMusicAPI:
         print(name, len(row))
 
         for i, r in enumerate(row):
+            wrapper = r.find_element(By.CLASS_NAME, "songs-list__song-link-wrapper")
+            song = wrapper.find_element(By.CLASS_NAME, "songs-list-row__song-name").text
+            artist = wrapper.find_element(By.CLASS_NAME, "songs-list-row__by-line").text
 
             # song = r.find_element(By.CLASS_NAME, "songs-list-row__song-name").text
             # artist = r.find_element(
             #     By.CLASS_NAME, "songs-list__song-link-wrapper"
             # ).text.split(", ")[0]
-            song = r.find_element(By.XPATH, ".//div[2]").text
-            artist = r.find_element(By.XPATH, ".//div[3]").text.split(", ")[0]
+
             print(song, artist)
             checked_pub = check_prod(self.pub_songs, self.pub_artists, song, artist)
             artist_exists = any(
@@ -563,40 +565,40 @@ class AppleMusicAPI:
 def scrape_all():
 
     options = webdriver.ChromeOptions()
-    options.binary_location = "/opt/chrome/chrome"
-    options.add_argument("--headless=new")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--window-size=1963x1696")
-    options.add_argument("--single-process")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-dev-tools")
-    options.add_argument("--no-zygote")
-    options.add_argument(f"--user-data-dir={mkdtemp()}")
-    options.add_argument(f"--data-path={mkdtemp()}")
-    options.add_argument(f"--disk-cache-dir={mkdtemp()}")
-    options.add_argument("--remote-debugging-port=9222")
-    service = webdriver.ChromeService("/opt/chromedriver")
+    # options.binary_location = "/opt/chrome/chrome"
+    # options.add_argument("--headless=new")
+    # options.add_argument("--no-sandbox")
+    # options.add_argument("--disable-gpu")
+    # options.add_argument("--window-size=1963x1696")
+    # options.add_argument("--single-process")
+    # options.add_argument("--disable-dev-shm-usage")
+    # options.add_argument("--disable-dev-tools")
+    # options.add_argument("--no-zygote")
+    # options.add_argument(f"--user-data-dir={mkdtemp()}")
+    # options.add_argument(f"--data-path={mkdtemp()}")
+    # options.add_argument(f"--disk-cache-dir={mkdtemp()}")
+    # options.add_argument("--remote-debugging-port=9222")
+    # service = webdriver.ChromeService("/opt/chromedriver")
 
     # local
-    # from selenium.webdriver.chrome.service import Service
-    # from webdriver_manager.chrome import ChromeDriverManager
+    from selenium.webdriver.chrome.service import Service
+    from webdriver_manager.chrome import ChromeDriverManager
 
-    # service = Service(ChromeDriverManager().install())
+    service = Service(ChromeDriverManager().install())
 
     driver = webdriver.Chrome(service=service, options=options)
     scrape = AppleMusicAPI(
         APPLE_PRIVATE_KEY, APPLE_KEY_ID, APPLE_TEAM_ID, driver=driver
     )
 
-    scrape.apple_music(
-        "APPLE MUSIC TOP SONGS - ALL GENRE",
-        "https://music.apple.com/us/browse/top-charts/songs/",
-    )
     # scrape.apple_music(
-    #     "APPLE MUSIC TOP SONGS - HIP-HOP",
-    #     "https://music.apple.com/us/browse/top-charts/songs/?genreId=18",
+    #     "APPLE MUSIC TOP SONGS - ALL GENRE",
+    #     "https://music.apple.com/us/browse/top-charts/songs/",
     # )
+    scrape.apple_music(
+        "APPLE MUSIC TOP SONGS - HIP-HOP",
+        "https://music.apple.com/us/browse/top-charts/songs/?genreId=18",
+    )
     # scrape.apple_music(
     #     "APPLE MUSIC TOP SONGS - POP",
     #     "https://music.apple.com/us/browse/top-charts/songs/?genreId=14",
@@ -839,7 +841,7 @@ def send_email(subject, body) -> None:
 
 def update_apple_charts():
     df = scrape_all()
-    # db.insert_apple_charts(df)
+    db.insert_apple_charts(df)
     body = create_html("roster", df, "Apple Roster Report")
     subject = f'Apple Roster Report - {datetime.now().strftime("%m/%d/%y")}'
     send_email(subject, body)
