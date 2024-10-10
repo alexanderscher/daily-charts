@@ -57,6 +57,16 @@ jobs:
             echo "No images to delete."
           fi
 
+
+          IMAGES=$(aws ecr list-images --repository-name soundcloud-charts-ecr --query 'imageIds[*]' --output json)
+          if [ "$IMAGES" != "[]" ]; then
+            aws ecr batch-delete-image \
+              --repository-name apple-charts-ecr \
+              --image-ids "$IMAGES"
+          else
+            echo "No images to delete."
+          fi
+
       # Step 4: Set up Docker Buildx (needed for multi-platform builds)
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -75,6 +85,8 @@ jobs:
 
           docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/apple-charts-ecr:latest --push --provenance=false ./apple
 
+          docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/soundcloud-charts-ecr:latest --push --provenance=false ./soundcloud
+
       # Step 7: Update the Lambda function with the new image
       - name: Update Lambda Function with New Image
         run: |
@@ -89,6 +101,10 @@ jobs:
           aws lambda update-function-code \
           --function-name apple-charts \
           --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/apple-charts-ecr:latest
+
+          aws lambda update-function-code \
+          --function-name soundcloud-charts \
+          --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/soundcloud-charts-ecr:latest
 
       # Step 8: Install Terraform
       - name: Install Terraform
