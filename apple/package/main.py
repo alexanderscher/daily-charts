@@ -807,7 +807,7 @@ def create_html(type, df, report_name):
     return html_body
 
 
-def send_email(subject, body) -> None:
+def send_email_ses(subject, body) -> None:
     ses_client = boto3.client(
         "ses",
         region_name="us-east-1",
@@ -844,11 +844,11 @@ def update_apple_charts():
     db.insert_apple_charts(df)
     body = create_html("roster", df, "Apple Roster Report")
     subject = f'Apple Roster Report - {datetime.now().strftime("%m/%d/%y")}'
-    send_email(subject, body)
+    send_email_ses(subject, body)
 
     body = create_html("chart", df, "Apple Chart Report")
     subject = f'Apple Chart Report - {datetime.now().strftime("%m/%d/%y")}'
-    send_email(subject, body)
+    send_email_ses(subject, body)
 
 
 def lambda_handler(event, context):

@@ -113,7 +113,7 @@ def create_html():
     return html_body
 
 
-def send_email(subject, body) -> None:
+def send_email_ses(subject, body) -> None:
     ses_client = boto3.client(
         "ses",
         region_name="us-east-1",
@@ -149,7 +149,7 @@ def scrape_all():
     velocity()
     body = create_html()
     subject = f'Velocity  Report - {datetime.now().strftime("%m/%d/%y")}'
-    send_email(subject, body)
+    send_email_ses(subject, body)
 
 
 def lambda_handler(event, context):

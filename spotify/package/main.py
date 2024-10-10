@@ -452,7 +452,7 @@ class Scrape:
         return html_body
 
 
-def send_email(subject, body) -> None:
+def send_email_ses(subject, body) -> None:
     ses_client = boto3.client(
         "ses",
         region_name="us-east-1",
@@ -550,11 +550,11 @@ def scrape_all():
     scrape.chart_search()
     body = scrape.create_html("roster", "Spotify Roster Report")
     subject = f'Spotify Roster Report - {datetime.datetime.now().strftime("%m/%d/%y")}'
-    send_email(subject, body)
+    send_email_ses(subject, body)
 
     body = scrape.create_html("chart", "Spotify Chart Report")
     subject = f'Spotify Chart Report - {datetime.datetime.now().strftime("%m/%d/%y")}'
-    send_email(subject, body)
+    send_email_ses(subject, body)
 
 
 def lambda_handler(event, context):
