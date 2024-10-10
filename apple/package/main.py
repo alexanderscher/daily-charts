@@ -837,7 +837,7 @@ def send_email(subject, body) -> None:
 
 def update_apple_charts():
     df = scrape_all()
-    db.insert_apple_charts(df)
+    # db.insert_apple_charts(df)
     body = create_html("roster", df, "Apple Roster Report")
     subject = f'Apple Roster Report - {datetime.now().strftime("%m/%d/%y")}'
     send_email(subject, body)
