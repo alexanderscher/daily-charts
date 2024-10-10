@@ -37,3 +37,15 @@ terraform/.terraform/providers/
 *.bin
 
 commands.txt
+
+tfplan
+
+# Ignore Terraform state files
+terraform.tfstate
+terraform.tfstate.backup
+
+# Ignore override files for local settings
+*.override.tf
+
+# Optional: Ignore lock file if you don’t want to lock provider versions
+.terraform.lock.hcl
