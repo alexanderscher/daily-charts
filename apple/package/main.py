@@ -644,7 +644,9 @@ def scrape_all():
         else:
             apple_data.at[i, "Movement"] = "New"
 
+    print(apple_data)
     scrape.chart_search(apple_data)
+
     final_data = pd.DataFrame(
         scrape.us,
         columns=[
