@@ -64,6 +64,8 @@ jobs:
 
           docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/velocity-ecr:latest --push --provenance=false ./velocity
 
+          docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/apple-charts-ecr:latest --push --provenance=false ./apple
+
       # Step 7: Update the Lambda function with the new image
       - name: Update Lambda Function with New Image
         run: |
@@ -71,9 +73,13 @@ jobs:
             --function-name spotify-charts \
             --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/spotify-charts-ecr:latest
 
-            aws lambda update-function-code \
-            --function-name velocity \
-            --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/velocity-ecr:latest
+          aws lambda update-function-code \
+          --function-name velocity \
+          --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/velocity-ecr:latest
+
+          aws lambda update-function-code \
+          --function-name apple-charts \
+          --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/apple-charts-ecr:latest
 
       # Step 8: Install Terraform
       - name: Install Terraform
@@ -82,18 +88,21 @@ jobs:
       # Step 9: Initialize Terraform
       - name: Initialize Terraform
         run: terraform init
-        working-directory: ./tf/spotify
+        working-directory: ./tf/
 
       # Step 10: Validate Terraform configuration
       - name: Validate Terraform
         run: terraform validate
-        working-directory: ./tf/spotify
+        working-directory: ./tf/
 
       # Step 11: Plan Terraform changes
       - name: Terraform Plan
 
         run: |
           terraform plan \
+            -var "apple_team_id=${{ secrets.APPLE_TEAM_ID }}" \
+            -var "apple_key_id=${{ secrets.APPLE_KEY_ID }}" \
+            -var "apple_private_key=${{ secrets.APPLE_PRIVATE_KEY }}" \
             -var "aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}" \
             -var "aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
             -var "alex=${{ secrets.ALEX }}" \
@@ -115,13 +124,16 @@ jobs:
             -var "spotify_client_secret_alena=${{ secrets.SPOTIFY_CLIENT_SECRET_ALENA }}" \
             -var "spotify_user_id_alena=${{ secrets.SPOTIFY_USER_ID_ALENA }}" \
 
-        working-directory: ./tf/spotify
+        working-directory: ./tf/
 
       # Step 12: Apply Terraform changes
       - name: Apply Terraform Changes
 
         run: |
           terraform apply -auto-approve \
+            -var "apple_team_id=${{ secrets.APPLE_TEAM_ID }}" \
+            -var "apple_key_id=${{ secrets.APPLE_KEY_ID }}" \
+            -var "apple_private_key=${{ secrets.APPLE_PRIVATE_KEY }}" \
             -var "aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}" \
             -var "aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
             -var "alex=${{ secrets.ALEX }}" \
@@ -143,4 +155,4 @@ jobs:
             -var "spotify_client_secret_alena=${{ secrets.SPOTIFY_CLIENT_SECRET_ALENA }}" \
             -var "spotify_user_id_alena=${{ secrets.SPOTIFY_USER_ID_ALENA }}" \
 
-        working-directory: ./tf/spotify
+        working-directory: ./tf/

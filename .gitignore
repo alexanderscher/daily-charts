@@ -23,7 +23,7 @@ __pycache__/
 crash.log
 
 # Ignore Terraform plan files
-*.tfplan
+tfplan
 
 # Ignore the entire .terraform directory
 .terraform/

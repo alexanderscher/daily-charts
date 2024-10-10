@@ -82,3 +82,16 @@ variable "spotify_user_id_alena" {
   type = string
 }
 
+
+variable "apple_team_id" {
+  type = string
+}
+
+variable "apple_key_id" {
+  type = string
+}
+
+variable "apple_private_key" {
+  type = string
+}
+
