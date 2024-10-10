@@ -359,10 +359,12 @@ class AppleMusicAPI:
 
         for i, r in enumerate(row):
 
-            song = r.find_element(By.CLASS_NAME, "songs-list-row__song-name").text
-            artist = r.find_element(
-                By.CLASS_NAME, "songs-list__song-link-wrapper"
-            ).text.split(", ")[0]
+            # song = r.find_element(By.CLASS_NAME, "songs-list-row__song-name").text
+            # artist = r.find_element(
+            #     By.CLASS_NAME, "songs-list__song-link-wrapper"
+            # ).text.split(", ")[0]
+            song = r.find_element(By.XPATH, ".//div[2]").text
+            artist = r.find_element(By.XPATH, ".//div[3]").text.split(", ")[0]
             print(song, artist)
             checked_pub = check_prod(self.pub_songs, self.pub_artists, song, artist)
             artist_exists = any(
