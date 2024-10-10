@@ -3,18 +3,6 @@ variable "region" {
   default     = "us-east-1"
 }
 
-variable "spotify_client_id" {
-  type = string
-}
-
-variable "spotify_client_secret" {
-  type = string
-}
-
-
-variable "spotify_user_id" {
-  type = string
-}
 
 variable "aws_access_key_id" {
   type = string
@@ -56,6 +44,18 @@ variable "db_password" {
   type = string
 }
 
+variable "spotify_client_id" {
+  type = string
+}
+
+variable "spotify_client_secret" {
+  type = string
+}
+
+
+variable "spotify_user_id" {
+  type = string
+}
 variable "spotify_client_id_l2tk" {
   type = string
 }
@@ -66,6 +66,19 @@ variable "spotify_client_secret_l2tk" {
 
 
 variable "spotify_user_id_l2tk" {
+  type = string
+}
+
+variable "spotify_client_id_alena" {
+  type = string
+}
+
+variable "spotify_client_secret_alena" {
+  type = string
+}
+
+
+variable "spotify_user_id_alena" {
   type = string
 }
 
