@@ -203,6 +203,21 @@ class AppleMusicAPI:
                             (name, p + 1, artist, album, None, None, None, None)
                         )
                     else:
+                        if ", " in artist:
+                            comma = artist.split(", ", 1)[0]
+                            if list(
+                                filter(
+                                    lambda x: (x.lower() == comma.lower()),
+                                    self.signed_artists,
+                                )
+                            ):
+                                continue
+                            else:
+                                self.apple_df.append(
+                                    (name, i + 1, artist, album, None, None, None, None)
+                                )
+                                print(f"{comma} not in signed")
+                                continue
                         if " & " in artist:
                             andpersand = artist.split(" & ")[0]
                             if list(
@@ -216,7 +231,8 @@ class AppleMusicAPI:
                                 self.apple_df.append(
                                     (name, i + 1, artist, album, None, None, None, None)
                                 )
-                        elif " featuring " in artist:
+                                continue
+                        if " featuring " in artist:
                             feat = artist.split(" featuring ")[0]
                             if list(
                                 filter(
@@ -229,19 +245,8 @@ class AppleMusicAPI:
                                 self.apple_df.append(
                                     (name, i + 1, feat, album, None, None, None, None)
                                 )
-                        elif ", " in artist:
-                            comma = artist.split(", ", 1)[0]
-                            if list(
-                                filter(
-                                    lambda x: (x.lower() == comma.lower()),
-                                    self.signed_artists,
-                                )
-                            ):
                                 continue
-                            else:
-                                self.apple_df.append(
-                                    (name, i + 1, comma, album, None, None, None, None)
-                                )
+
                         else:
                             if not list(
                                 filter(
@@ -282,34 +287,7 @@ class AppleMusicAPI:
                 if checked_pub or artist_exists:
                     self.apple_df.append((name, i + 1, artist, song, None, None, None))
                 else:
-                    if " & " in artist:
-                        andpersand = artist.split(" & ")[0]
-                        if list(
-                            filter(
-                                lambda x: (x.lower() == andpersand.lower()),
-                                self.signed_artists,
-                            )
-                        ):
-                            continue
-                        else:
-                            self.apple_df.append(
-                                (name, i + 1, artist, song, None, None, None, None)
-                            )
-                    elif " featuring " in artist:
-                        feat = artist.split(" featuring ")[0]
-                        if list(
-                            filter(
-                                lambda x: (x.lower() == feat.lower()),
-                                self.signed_artists,
-                            )
-                        ):
-
-                            continue
-                        else:
-                            self.apple_df.append(
-                                (name, i + 1, feat, song, None, None, None, None)
-                            )
-                    elif ", " in artist:
+                    if ", " in artist:
                         comma = artist.split(", ", 1)[0]
                         if list(
                             filter(
@@ -323,6 +301,37 @@ class AppleMusicAPI:
                             self.apple_df.append(
                                 (name, i + 1, comma, song, None, None, None, None)
                             )
+                            continue
+                    if " & " in artist:
+                        andpersand = artist.split(" & ")[0]
+                        if list(
+                            filter(
+                                lambda x: (x.lower() == andpersand.lower()),
+                                self.signed_artists,
+                            )
+                        ):
+                            continue
+                        else:
+                            self.apple_df.append(
+                                (name, i + 1, artist, song, None, None, None, None)
+                            )
+                            continue
+                    if " featuring " in artist:
+                        feat = artist.split(" featuring ")[0]
+                        if list(
+                            filter(
+                                lambda x: (x.lower() == feat.lower()),
+                                self.signed_artists,
+                            )
+                        ):
+
+                            continue
+                        else:
+                            self.apple_df.append(
+                                (name, i + 1, feat, song, None, None, None, None)
+                            )
+                            continue
+
                     else:
                         if not list(
                             filter(
@@ -367,6 +376,21 @@ class AppleMusicAPI:
                     (name, i + 1, artist, song, None, None, None, None)
                 )
             else:
+                if ", " in artist:
+                    comma = artist.split(", ", 1)[0]
+                    if list(
+                        filter(
+                            lambda x: (x.lower() == comma.lower()),
+                            self.signed_artists,
+                        )
+                    ):
+                        continue
+                    else:
+                        self.apple_df.append(
+                            (name, i + 1, artist, song, None, None, None, None)
+                        )
+                        print(f"{comma} not in signed")
+                        continue
                 if " & " in artist:
                     andpersand = artist.split(" & ")[0]
                     if list(
@@ -380,7 +404,8 @@ class AppleMusicAPI:
                         self.apple_df.append(
                             (name, i + 1, artist, song, None, None, None, None)
                         )
-                elif " featuring " in artist:
+                        continue
+                if " featuring " in artist:
                     feat = artist.split(" featuring ")[0]
                     if list(
                         filter(
@@ -392,6 +417,7 @@ class AppleMusicAPI:
                         self.apple_df.append(
                             (name, i + 1, feat, song, None, None, None, None)
                         )
+                        continue
                 else:
                     if not list(
                         filter(
