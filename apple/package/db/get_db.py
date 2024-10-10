@@ -171,7 +171,7 @@ class FetchDB:
     def get_apple_charts(self):
         session = SessionLocal()
 
-        yesterday = datetime.now() - timedelta(days=1)
+        yesterday = datetime.now() - timedelta(days=2)
         yesterday_str = yesterday.strftime("%Y-%m-%d")
 
         try:

@@ -230,7 +230,7 @@ class AppleMusicAPI:
                                     (name, i + 1, feat, album, None, None, None, None)
                                 )
                         elif ", " in artist:
-                            comma = artist.split(", ")[0]
+                            comma = artist.split(", ", 1)[0]
                             if list(
                                 filter(
                                     lambda x: (x.lower() == comma.lower()),
@@ -310,7 +310,7 @@ class AppleMusicAPI:
                                 (name, i + 1, feat, song, None, None, None, None)
                             )
                     elif ", " in artist:
-                        comma = artist.split(", ")[0]
+                        comma = artist.split(", ", 1)[0]
                         if list(
                             filter(
                                 lambda x: (x.lower() == comma.lower()),
