@@ -17,3 +17,13 @@ data "aws_ecr_image" "velocity_ecr" {
   repository_name = aws_ecr_repository.velocity_ecr.name
   image_tag       = "latest"
 }
+
+
+resource "aws_ecr_repository" "apple_charts_ecr" {
+  name = "apple-charts-ecr"
+}
+
+data "aws_ecr_image" "apple_charts_ecr" {
+  repository_name = aws_ecr_repository.apple_charts_ecr.name
+  image_tag       = "latest"
+}
