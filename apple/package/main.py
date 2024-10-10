@@ -484,6 +484,11 @@ class AppleMusicAPI:
                     (chart, position, ogartist, song, None, None, movement, None, label)
                 )
                 continue
+            if movement != "New":
+                self.us.append(
+                    (chart, position, ogartist, song, None, None, movement, None, label)
+                )
+                continue
 
             if movement == "New":
                 copyright = None
