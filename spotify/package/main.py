@@ -318,7 +318,7 @@ class Scrape:
                             )
                         )
 
-    def create_html(self, type):
+    def create_html(self, type, chart_name):
         conor = os.getenv("CONOR")
         ari = os.getenv("ARI")
         laura = os.getenv("LAURA")
@@ -356,7 +356,7 @@ class Scrape:
         </head>
         <body>
         <p>
-            Spotify Chart Report - {datetime.datetime.now().strftime("%m/%d/%y")}
+            {chart_name} - {datetime.datetime.now().strftime("%m/%d/%y")}
             <br> {conor}, {ari}, {laura}, {micah}
         </p>
         """
@@ -548,16 +548,12 @@ def scrape_all():
     )
     scrape.driver.quit()
     scrape.chart_search()
-    body = scrape.create_html("roster")
-    subject = (
-        f'Spotify Roster Report test - {datetime.datetime.now().strftime("%m/%d/%y")}'
-    )
+    body = scrape.create_html("roster", "Spotify Roster Report")
+    subject = f'Spotify Roster Report - {datetime.datetime.now().strftime("%m/%d/%y")}'
     send_email(subject, body)
 
-    body = scrape.create_html("chart")
-    subject = (
-        f'Spotify Chart Report test - {datetime.datetime.now().strftime("%m/%d/%y")}'
-    )
+    body = scrape.create_html("chart", "Spotify Chart Report")
+    subject = f'Spotify Chart Report - {datetime.datetime.now().strftime("%m/%d/%y")}'
     send_email(subject, body)
 
 

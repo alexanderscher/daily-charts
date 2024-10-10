@@ -216,7 +216,6 @@ class AppleMusicAPI:
                                 self.apple_df.append(
                                     (name, i + 1, artist, album, None, None, None, None)
                                 )
-                                print(f"{artist} not in signed")
                         elif " featuring " in artist:
                             feat = artist.split(" featuring ")[0]
                             if list(
@@ -225,13 +224,11 @@ class AppleMusicAPI:
                                     self.signed_artists,
                                 )
                             ):
-                                print(f"{artist} in signed")
                                 continue
                             else:
                                 self.apple_df.append(
                                     (name, i + 1, feat, album, None, None, None, None)
                                 )
-                                print(f"{artist} not in signed")
                         elif ", " in artist:
                             comma = artist.split(", ")[0]
                             if list(
@@ -240,13 +237,11 @@ class AppleMusicAPI:
                                     self.signed_artists,
                                 )
                             ):
-                                print(f"{artist} in signed")
                                 continue
                             else:
                                 self.apple_df.append(
                                     (name, i + 1, comma, album, None, None, None, None)
                                 )
-                                print(f"{artist} not in signed")
                         else:
                             if not list(
                                 filter(
@@ -257,7 +252,6 @@ class AppleMusicAPI:
                                 self.apple_df.append(
                                     (name, p + 1, artist, album, None, None, None, None)
                                 )
-                                print(f"{artist} not in signed")
                     p += 1
 
             self.offset += 20
@@ -301,7 +295,6 @@ class AppleMusicAPI:
                             self.apple_df.append(
                                 (name, i + 1, artist, song, None, None, None, None)
                             )
-                            print(f"{artist} not in signed")
                     elif " featuring " in artist:
                         feat = artist.split(" featuring ")[0]
                         if list(
@@ -316,7 +309,6 @@ class AppleMusicAPI:
                             self.apple_df.append(
                                 (name, i + 1, feat, song, None, None, None, None)
                             )
-                            print(f"{artist} not in signed")
                     elif ", " in artist:
                         comma = artist.split(", ")[0]
                         if list(
@@ -331,7 +323,6 @@ class AppleMusicAPI:
                             self.apple_df.append(
                                 (name, i + 1, comma, song, None, None, None, None)
                             )
-                            print(f"{artist} not in signed")
                     else:
                         if not list(
                             filter(
@@ -342,7 +333,6 @@ class AppleMusicAPI:
                             self.apple_df.append(
                                 (name, i + 1, artist, song, None, None, None)
                             )
-                            print(f"{artist} not in signed")
 
         i += 1
 
@@ -385,13 +375,11 @@ class AppleMusicAPI:
                             self.signed_artists,
                         )
                     ):
-                        print(f"{artist} in signed")
                         continue
                     else:
                         self.apple_df.append(
                             (name, i + 1, artist, song, None, None, None, None)
                         )
-                        print(f"{artist} not in signed")
                 elif " featuring " in artist:
                     feat = artist.split(" featuring ")[0]
                     if list(
@@ -399,13 +387,11 @@ class AppleMusicAPI:
                             lambda x: (x.lower() == feat.lower()), self.signed_artists
                         )
                     ):
-                        print(f"{artist} in signed")
                         continue
                     else:
                         self.apple_df.append(
                             (name, i + 1, feat, song, None, None, None, None)
                         )
-                        print(f"{artist} not in signed")
                 else:
                     if not list(
                         filter(
@@ -415,16 +401,14 @@ class AppleMusicAPI:
                         self.apple_df.append(
                             (name, i + 1, artist, song, None, None, None, None)
                         )
-                        print(f"{artist} not in signed")
 
     def get_copyright_info(self, artist, song, chart_type, source="spotify"):
         artist = artist.lower()
 
-        # Determine whether to fetch album or track data
         if "album" in chart_type.lower():
-            method = self.spotify_client.get_artist_copy_album()
+            method = self.spotify_client.get_artist_copy_album
         else:
-            method = self.spotify_client.get_artist_copy_track()
+            method = self.spotify_client.get_artist_copy_track
 
         copyright = method(artist, song, source)
         return copyright
@@ -459,8 +443,6 @@ class AppleMusicAPI:
             )
 
             if checked_pub or artist_exists or song_exists_in_album:
-
-                print(f"{position}.", ogartist, "-", song, "(L2TK)")
                 self.us.append(
                     (
                         chart,
@@ -477,7 +459,6 @@ class AppleMusicAPI:
                 continue
 
             if any(x.lower() == artist.lower() for x in self.signed_artists):
-                print(f"{position}.", ogartist, "-", song, "******")
                 self.us.append(
                     (chart, position, ogartist, song, None, None, movement, None, label)
                 )
@@ -494,7 +475,6 @@ class AppleMusicAPI:
                 if not copyright or (
                     "2023" not in copyright[0] and "2024" not in copyright[0]
                 ):
-                    print(f"{position} (OLD):", ogartist, "-", song)
                     continue
 
                 if copyright:
@@ -666,9 +646,8 @@ def scrape_all():
         else:
             apple_data.at[i, "Movement"] = "New"
 
-    apple_data["Movement"] = apple_data["Movement"].astype(str)
     scrape.chart_search(apple_data)
-    final_data = unsigned = pd.DataFrame(
+    final_data = pd.DataFrame(
         scrape.us,
         columns=[
             "Chart",
@@ -692,7 +671,7 @@ prospect_list = []
 prospects = db.get_prospects()
 
 
-def create_html(self, type, df):
+def create_html(type, df, report_name):
     conor = os.getenv("CONOR")
     ari = os.getenv("ARI")
     laura = os.getenv("LAURA")
@@ -712,14 +691,14 @@ def create_html(self, type, df):
         </head>
         <body>
         <p>
-            Spotify Chart Report - {datetime.now().strftime("%m/%d/%y")}
+            {report_name} - {datetime.now().strftime("%m/%d/%y")}
             <br> {conor}, {ari}, {laura}, {micah}
         </p>
         """
 
     chart_header = None
 
-    def add_content_and_header(chart, date):
+    def add_content_and_header(chart):
         nonlocal html_body
         if l2tk_chart or other or prospect_list:
             header_text = f"<br><br><strong style='text-decoration: underline;'>{chart.upper()}</strong><br><br>"
@@ -742,9 +721,9 @@ def create_html(self, type, df):
                 for p in other:
                     html_body += f"<p>{p['c']}</p>"
 
-        l2tk_chart = []
-        prospect_list = []
-        other = []
+        l2tk_chart.clear()
+        prospect_list.clear()
+        other.clear()
 
     for (
         chart,
@@ -833,11 +812,11 @@ def send_email(subject, body) -> None:
 def update_apple_charts():
     df = scrape_all()
     db.insert_apple_charts(df)
-    body = create_html("roster")
+    body = create_html("roster", df, "Apple Roster Report")
     subject = f'Apple Roster Report - {datetime.now().strftime("%m/%d/%y")}'
     send_email(subject, body)
 
-    body = create_html("chart")
+    body = create_html("chart", df, "Apple Chart Report")
     subject = f'Apple Chart Report - {datetime.now().strftime("%m/%d/%y")}'
     send_email(subject, body)
 
