@@ -48,6 +48,15 @@ jobs:
             echo "No images to delete."
           fi
 
+          IMAGES=$(aws ecr list-images --repository-name apple-charts-ecr --query 'imageIds[*]' --output json)
+          if [ "$IMAGES" != "[]" ]; then
+            aws ecr batch-delete-image \
+              --repository-name apple-charts-ecr \
+              --image-ids "$IMAGES"
+          else
+            echo "No images to delete."
+          fi
+
       # Step 4: Set up Docker Buildx (needed for multi-platform builds)
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
