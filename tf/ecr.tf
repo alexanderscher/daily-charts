@@ -27,3 +27,13 @@ data "aws_ecr_image" "apple_charts_ecr" {
   repository_name = aws_ecr_repository.apple_charts_ecr.name
   image_tag       = "latest"
 }
+
+
+resource "aws_ecr_repository" "soundcloud_charts_ecr" {
+  name = "soundcloud-charts-ecr"
+}
+
+data "aws_ecr_image" "soundcloud_charts_ecr" {
+  repository_name = aws_ecr_repository.soundcloud_charts_ecr.name
+  image_tag       = "latest"
+}
