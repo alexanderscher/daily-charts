@@ -12,7 +12,7 @@ pd.set_option("display.colheader_justify", "center")
 pd.set_option("display.precision", 3)
 
 from db.get_db import FetchDB
-from velocity.package.spotify_api import SpotifyAPI
+from spotify_api import SpotifyAPI
 
 CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
 USER_ID = os.getenv("SPOTIFY_USER_ID")

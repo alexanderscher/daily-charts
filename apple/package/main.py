@@ -6,16 +6,12 @@ import time
 from selenium.common.exceptions import NoSuchElementException
 from selenium import webdriver
 from selenium.webdriver.chrome.webdriver import WebDriver
-from typing import List
 import os
 from tempfile import mkdtemp
 from selenium.webdriver.common.by import By
 import boto3
 from botocore.exceptions import ClientError
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import StaleElementReferenceException
-from typing import List, TypedDict, Union, Dict
 import pandas as pd
 
 pd.set_option("display.max_rows", None)
