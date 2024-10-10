@@ -15,3 +15,4 @@ resource "aws_scheduler_schedule" "spotify_charts_schedule" {
   }
 }
 
+

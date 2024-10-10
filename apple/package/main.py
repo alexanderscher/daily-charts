@@ -189,7 +189,7 @@ class AppleMusicAPI:
                     artist = l["attributes"]["artistName"]
 
                     checked_pub = check_prod_albums(
-                        self.pub_songs, self.pub_artists, album, artist
+                        self.pub_albums, self.pub_artists, album, artist
                     )
                     artist_exists = any(
                         art.lower() in artist.lower() for art in self.roster_artists
@@ -212,7 +212,6 @@ class AppleMusicAPI:
                                 self.apple_df.append(
                                     (name, i + 1, artist, album, None, None, None, None)
                                 )
-                                print(f"{comma} not in signed")
                                 continue
                         if " & " in artist:
                             andpersand = artist.split(" & ")[0]
@@ -356,6 +355,7 @@ class AppleMusicAPI:
             time.sleep(5)
 
         row = self.driver.find_elements(By.CLASS_NAME, "songs-list-row")
+        print(name, len(row))
 
         for i, r in enumerate(row):
 
@@ -385,7 +385,6 @@ class AppleMusicAPI:
                         self.apple_df.append(
                             (name, i + 1, artist, song, None, None, None, None)
                         )
-                        print(f"{comma} not in signed")
                         continue
                 if " & " in artist:
                     andpersand = artist.split(" & ")[0]
@@ -556,26 +555,26 @@ class AppleMusicAPI:
 def scrape_all():
 
     options = webdriver.ChromeOptions()
-    options.binary_location = "/opt/chrome/chrome"
+    # options.binary_location = "/opt/chrome/chrome"
     options.add_argument("--headless=new")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--window-size=1963x1696")
-    options.add_argument("--single-process")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-dev-tools")
-    options.add_argument("--no-zygote")
-    options.add_argument(f"--user-data-dir={mkdtemp()}")
-    options.add_argument(f"--data-path={mkdtemp()}")
-    options.add_argument(f"--disk-cache-dir={mkdtemp()}")
-    options.add_argument("--remote-debugging-port=9222")
-    service = webdriver.ChromeService("/opt/chromedriver")
+    # options.add_argument("--no-sandbox")
+    # options.add_argument("--disable-gpu")
+    # options.add_argument("--window-size=1963x1696")
+    # options.add_argument("--single-process")
+    # options.add_argument("--disable-dev-shm-usage")
+    # options.add_argument("--disable-dev-tools")
+    # options.add_argument("--no-zygote")
+    # options.add_argument(f"--user-data-dir={mkdtemp()}")
+    # options.add_argument(f"--data-path={mkdtemp()}")
+    # options.add_argument(f"--disk-cache-dir={mkdtemp()}")
+    # options.add_argument("--remote-debugging-port=9222")
+    # service = webdriver.ChromeService("/opt/chromedriver")
 
     # local
-    # from selenium.webdriver.chrome.service import Service
-    # from webdriver_manager.chrome import ChromeDriverManager
+    from selenium.webdriver.chrome.service import Service
+    from webdriver_manager.chrome import ChromeDriverManager
 
-    # service = Service(ChromeDriverManager().install())
+    service = Service(ChromeDriverManager().install())
 
     driver = webdriver.Chrome(service=service, options=options)
     scrape = AppleMusicAPI(
@@ -666,7 +665,6 @@ def scrape_all():
         else:
             apple_data.at[i, "Movement"] = "New"
 
-    print(apple_data)
     scrape.chart_search(apple_data)
 
     final_data = pd.DataFrame(
@@ -683,7 +681,6 @@ def scrape_all():
             "Label",
         ],
     )
-    print(final_data)
 
     return final_data
 
