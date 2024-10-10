@@ -24,7 +24,7 @@ resource "aws_scheduler_schedule" "veloctiy_schedule" {
     mode = "OFF"
   }
 
-  schedule_expression          = "cron(50 17 09 10 ? 2024)"
+  schedule_expression          = "cron(50 18 09 10 ? 2024)"
   schedule_expression_timezone = "America/Los_Angeles"
 
   target {
