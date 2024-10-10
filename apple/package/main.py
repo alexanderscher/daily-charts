@@ -358,75 +358,73 @@ class AppleMusicAPI:
         print(name, len(row))
 
         for i, r in enumerate(row):
-            wrapper = r.find_element(By.CLASS_NAME, "songs-list__song-link-wrapper")
-            song = wrapper.find_element(By.CLASS_NAME, "songs-list-row__song-name").text
-            artist = wrapper.find_element(By.CLASS_NAME, "songs-list-row__by-line").text
+            song = r.find_element(By.CLASS_NAME, "songs-list-row__song-wrapper").text
 
             # song = r.find_element(By.CLASS_NAME, "songs-list-row__song-name").text
             # artist = r.find_element(
             #     By.CLASS_NAME, "songs-list__song-link-wrapper"
             # ).text.split(", ")[0]
 
-            print(song, artist)
-            checked_pub = check_prod(self.pub_songs, self.pub_artists, song, artist)
-            artist_exists = any(
-                art.lower() in artist.lower() for art in self.roster_artists
-            )
-            if checked_pub or artist_exists:
-                self.apple_df.append(
-                    (name, i + 1, artist, song, None, None, None, None)
-                )
-            else:
-                if ", " in artist:
-                    comma = artist.split(", ", 1)[0]
-                    if list(
-                        filter(
-                            lambda x: (x.lower() == comma.lower()),
-                            self.signed_artists,
-                        )
-                    ):
-                        continue
-                    else:
-                        self.apple_df.append(
-                            (name, i + 1, artist, song, None, None, None, None)
-                        )
-                        continue
-                if " & " in artist:
-                    andpersand = artist.split(" & ")[0]
-                    if list(
-                        filter(
-                            lambda x: (x.lower() == andpersand.lower()),
-                            self.signed_artists,
-                        )
-                    ):
-                        continue
-                    else:
-                        self.apple_df.append(
-                            (name, i + 1, artist, song, None, None, None, None)
-                        )
-                        continue
-                if " featuring " in artist:
-                    feat = artist.split(" featuring ")[0]
-                    if list(
-                        filter(
-                            lambda x: (x.lower() == feat.lower()), self.signed_artists
-                        )
-                    ):
-                        continue
-                    else:
-                        self.apple_df.append(
-                            (name, i + 1, feat, song, None, None, None, None)
-                        )
-                        continue
-                else:
-                    if not list(
-                        filter(
-                            lambda x: (x.lower() == artist.lower()), self.signed_artists
-                        )
-                    ):
-                        self.apple_df.append(
-                            (name, i + 1, artist, song, None, None, None, None)
-                        )
+            print(song)
+            # checked_pub = check_prod(self.pub_songs, self.pub_artists, song, artist)
+            # artist_exists = any(
+            #     art.lower() in artist.lower() for art in self.roster_artists
+            # )
+            # if checked_pub or artist_exists:
+            #     self.apple_df.append(
+            #         (name, i + 1, artist, song, None, None, None, None)
+            #     )
+            # else:
+            #     if ", " in artist:
+            #         comma = artist.split(", ", 1)[0]
+            #         if list(
+            #             filter(
+            #                 lambda x: (x.lower() == comma.lower()),
+            #                 self.signed_artists,
+            #             )
+            #         ):
+            #             continue
+            #         else:
+            #             self.apple_df.append(
+            #                 (name, i + 1, artist, song, None, None, None, None)
+            #             )
+            #             continue
+            #     if " & " in artist:
+            #         andpersand = artist.split(" & ")[0]
+            #         if list(
+            #             filter(
+            #                 lambda x: (x.lower() == andpersand.lower()),
+            #                 self.signed_artists,
+            #             )
+            #         ):
+            #             continue
+            #         else:
+            #             self.apple_df.append(
+            #                 (name, i + 1, artist, song, None, None, None, None)
+            #             )
+            #             continue
+            #     if " featuring " in artist:
+            #         feat = artist.split(" featuring ")[0]
+            #         if list(
+            #             filter(
+            #                 lambda x: (x.lower() == feat.lower()), self.signed_artists
+            #             )
+            #         ):
+            #             continue
+            #         else:
+            #             self.apple_df.append(
+            #                 (name, i + 1, feat, song, None, None, None, None)
+            #             )
+            #             continue
+            #     else:
+            #         if not list(
+            #             filter(
+            #                 lambda x: (x.lower() == artist.lower()), self.signed_artists
+            #             )
+            #         ):
+            #             self.apple_df.append(
+            #                 (name, i + 1, artist, song, None, None, None, None)
+            # )
 
     def get_copyright_info(self, artist, song, chart_type, source="spotify"):
         artist = artist.lower()
@@ -565,26 +563,26 @@ class AppleMusicAPI:
 def scrape_all():
 
     options = webdriver.ChromeOptions()
-    # options.binary_location = "/opt/chrome/chrome"
-    # options.add_argument("--headless=new")
-    # options.add_argument("--no-sandbox")
-    # options.add_argument("--disable-gpu")
-    # options.add_argument("--window-size=1963x1696")
-    # options.add_argument("--single-process")
-    # options.add_argument("--disable-dev-shm-usage")
-    # options.add_argument("--disable-dev-tools")
-    # options.add_argument("--no-zygote")
-    # options.add_argument(f"--user-data-dir={mkdtemp()}")
-    # options.add_argument(f"--data-path={mkdtemp()}")
-    # options.add_argument(f"--disk-cache-dir={mkdtemp()}")
-    # options.add_argument("--remote-debugging-port=9222")
-    # service = webdriver.ChromeService("/opt/chromedriver")
+    options.binary_location = "/opt/chrome/chrome"
+    options.add_argument("--headless=new")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--window-size=1963x1696")
+    options.add_argument("--single-process")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-dev-tools")
+    options.add_argument("--no-zygote")
+    options.add_argument(f"--user-data-dir={mkdtemp()}")
+    options.add_argument(f"--data-path={mkdtemp()}")
+    options.add_argument(f"--disk-cache-dir={mkdtemp()}")
+    options.add_argument("--remote-debugging-port=9222")
+    service = webdriver.ChromeService("/opt/chromedriver")
 
     # local
-    from selenium.webdriver.chrome.service import Service
-    from webdriver_manager.chrome import ChromeDriverManager
+    # from selenium.webdriver.chrome.service import Service
+    # from webdriver_manager.chrome import ChromeDriverManager
 
-    service = Service(ChromeDriverManager().install())
+    # service = Service(ChromeDriverManager().install())
 
     driver = webdriver.Chrome(service=service, options=options)
     scrape = AppleMusicAPI(
@@ -640,59 +638,59 @@ def scrape_all():
     # scrape.music_videos("APPLE MUSIC TOP MUSIC VIDEO - COUNTRY", 6)
     # scrape.music_videos("APPLE MUSIC TOP MUSIC VIDEO- SINGER SONGWRITER", 10)
 
-    apple_data = pd.DataFrame(
-        scrape.apple_df,
-        columns=[
-            "Chart",
-            "Position",
-            "Artist",
-            "Song",
-            "Movement",
-            "Days",
-            "Peak",
-            "Date",
-        ],
-    )
-    data_yesterday = db.get_apple_charts()
-    for i, r in apple_data.iterrows():
-        pos = r["Position"]
-        chart = r["Chart"]
-        match = data_yesterday.loc[
-            (data_yesterday["song"].str.lower() == r["Song"].lower())
-            & (data_yesterday["chart"].str.lower() == chart.lower())
-        ]
+    # apple_data = pd.DataFrame(
+    #     scrape.apple_df,
+    #     columns=[
+    #         "Chart",
+    #         "Position",
+    #         "Artist",
+    #         "Song",
+    #         "Movement",
+    #         "Days",
+    #         "Peak",
+    #         "Date",
+    #     ],
+    # )
+    # data_yesterday = db.get_apple_charts()
+    # for i, r in apple_data.iterrows():
+    #     pos = r["Position"]
+    #     chart = r["Chart"]
+    #     match = data_yesterday.loc[
+    #         (data_yesterday["song"].str.lower() == r["Song"].lower())
+    #         & (data_yesterday["chart"].str.lower() == chart.lower())
+    #     ]
 
-        if not match.empty:
-            apple_data.at[i, "Label"] = match["label"].iloc[0]
-            apple_data.at[i, "Link"] = match["link"].iloc[0]
-            pos_y = int(match["position"].iloc[0])
+    #     if not match.empty:
+    #         apple_data.at[i, "Label"] = match["label"].iloc[0]
+    #         apple_data.at[i, "Link"] = match["link"].iloc[0]
+    #         pos_y = int(match["position"].iloc[0])
 
-            if pos_y == pos:
-                apple_data.at[i, "Movement"] = "0"
-            else:
-                movement_value = pos_y - pos
-                apple_data.at[i, "Movement"] = str(movement_value)
-        else:
-            apple_data.at[i, "Movement"] = "New"
+    #         if pos_y == pos:
+    #             apple_data.at[i, "Movement"] = "0"
+    #         else:
+    #             movement_value = pos_y - pos
+    #             apple_data.at[i, "Movement"] = str(movement_value)
+    #     else:
+    #         apple_data.at[i, "Movement"] = "New"
 
-    scrape.chart_search(apple_data)
+    # scrape.chart_search(apple_data)
 
-    final_data = pd.DataFrame(
-        scrape.us,
-        columns=[
-            "Chart",
-            "Position",
-            "Artist",
-            "Song",
-            "Unsigned",
-            "L2TK",
-            "Movement",
-            "Link",
-            "Label",
-        ],
-    )
+    # final_data = pd.DataFrame(
+    #     scrape.us,
+    #     columns=[
+    #         "Chart",
+    #         "Position",
+    #         "Artist",
+    #         "Song",
+    #         "Unsigned",
+    #         "L2TK",
+    #         "Movement",
+    #         "Link",
+    #         "Label",
+    #     ],
+    # )
 
-    return final_data
+    # return final_data
 
 
 other = []
@@ -841,14 +839,14 @@ def send_email_ses(subject, body) -> None:
 
 def update_apple_charts():
     df = scrape_all()
-    db.insert_apple_charts(df)
-    body = create_html("roster", df, "Apple Roster Report")
-    subject = f'Apple Roster Report - {datetime.now().strftime("%m/%d/%y")}'
-    send_email_ses(subject, body)
+    # db.insert_apple_charts(df)
+    # body = create_html("roster", df, "Apple Roster Report")
+    # subject = f'Apple Roster Report - {datetime.now().strftime("%m/%d/%y")}'
+    # send_email_ses(subject, body)
 
-    body = create_html("chart", df, "Apple Chart Report")
-    subject = f'Apple Chart Report - {datetime.now().strftime("%m/%d/%y")}'
-    send_email_ses(subject, body)
+    # body = create_html("chart", df, "Apple Chart Report")
+    # subject = f'Apple Chart Report - {datetime.now().strftime("%m/%d/%y")}'
+    # send_email_ses(subject, body)
 
 
 def lambda_handler(event, context):

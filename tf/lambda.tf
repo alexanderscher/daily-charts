@@ -50,7 +50,6 @@ resource "aws_lambda_function" "velocity" {
 
 }
 
-
 resource "aws_lambda_function" "apple_charts" {
   function_name = "apple-charts"
   role          = aws_iam_role.charts_role.arn
