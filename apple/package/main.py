@@ -686,16 +686,164 @@ def scrape_all():
     return final_data
 
 
+other = []
+l2tk_chart = []
+prospect_list = []
+prospects = db.get_prospects()
+
+
+def create_html(self, type, df):
+    conor = os.getenv("CONOR")
+    ari = os.getenv("ARI")
+    laura = os.getenv("LAURA")
+    micah = os.getenv("MICAH")
+
+    html_body = f"""
+        <html>
+        <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; font-size: 12px; color: black; }}
+            h2 {{ font-size: 14px; font-weight: bold; }}
+            a {{ color: black; text-decoration: none; }} /* Unvisited link */
+            a:visited {{ color: black; text-decoration: none; }} /* Visited link */
+            a:hover {{ text-decoration: underline; }} /* Hover effect */
+            .indent {{ padding-left: 20px; }} 
+        </style>
+        </head>
+        <body>
+        <p>
+            Spotify Chart Report - {datetime.now().strftime("%m/%d/%y")}
+            <br> {conor}, {ari}, {laura}, {micah}
+        </p>
+        """
+
+    chart_header = None
+
+    def add_content_and_header(chart, date):
+        nonlocal html_body
+        if l2tk_chart or other or prospect_list:
+            header_text = f"<br><br><strong style='text-decoration: underline;'>{chart.upper()}</strong><br><br>"
+            html_body += header_text
+
+            if l2tk_chart:
+                html_body += "<p>L2TK:</p>"
+                for p in l2tk_chart:
+                    html_body += f"<p>{p}</p>"
+
+            if prospect_list:
+                html_body += "<br><p>PROSPECT:</p>"
+                for p in prospect_list:
+                    html_body += (
+                        f"<p><span style='background-color: red;'>{p}</span></p>"
+                    )
+
+            if other:
+                html_body += "<br><p>NEW ADDS:</p>"
+                for p in other:
+                    html_body += f"<p>{p['c']}</p>"
+
+        l2tk_chart = []
+        prospect_list = []
+        other = []
+
+    for (
+        chart,
+        position,
+        artist,
+        song,
+        unsigned,
+        l2tk,
+        movement,
+        link,
+        label,
+    ) in df.itertuples(index=False):
+        if chart != chart_header:
+            if chart_header:
+                add_content_and_header(chart_header)
+
+            chart_header = chart
+        if type == "chart":
+            if l2tk == "L2TK":
+                if artist.lower() in prospects:
+                    prospect_list.append(
+                        f"""
+                            {position}. {artist} - {song} ({'=' if movement == '0' else movement})
+                            """
+                    )
+
+            if movement == "NEW" and unsigned == "UNSIGNED":
+                other.append(
+                    {
+                        "c": f"""
+                            {position}. {artist} - {song} ({movement})<br>
+                            <span class='indent'>• Label: {label} (UNSIGNED)</span><br>
+                            <span class='indent'>• <a href='{link}'>{link}</a></span>
+                            """,
+                        "h": True,
+                    }
+                )
+        else:
+            if l2tk == "L2TK":
+                if artist.lower() not in prospects:
+                    l2tk_chart.append(
+                        f"""
+                            {position}. {artist} - {song} ({'=' if movement == '0' else movement}) (L2TK)<br>
+                            """
+                    )
+
+    add_content_and_header(chart_header)
+
+    html_body += "</body></html>"
+
+    return html_body
+
+
+def send_email(subject, body) -> None:
+    ses_client = boto3.client(
+        "ses",
+        region_name="us-east-1",
+    )
+    sender = os.getenv("ALEX")
+
+    try:
+        response = ses_client.send_email(
+            Destination={
+                "ToAddresses": [os.getenv("ALEX_MAIL")],
+            },
+            Message={
+                "Body": {
+                    "Html": {
+                        "Charset": "UTF-8",
+                        "Data": body,
+                    },
+                },
+                "Subject": {
+                    "Charset": "UTF-8",
+                    "Data": subject,
+                },
+            },
+            Source=sender,
+        )
+    except ClientError as e:
+        print(f"Error sending email: {e.response['Error']['Message']}")
+    else:
+        print(f"Email sent! Message ID: {response['MessageId']}")
+
+
 def update_apple_charts():
     df = scrape_all()
     db.insert_apple_charts(df)
+    body = create_html("roster")
+    subject = f'Apple Roster Report - {datetime.now().strftime("%m/%d/%y")}'
+    send_email(subject, body)
 
-
-db.insert_apple_charts(unsigned)
+    body = create_html("chart")
+    subject = f'Apple Chart Report - {datetime.now().strftime("%m/%d/%y")}'
+    send_email(subject, body)
 
 
 def lambda_handler(event, context):
-    scrape_all()
+    update_apple_charts()
     return {
         "statusCode": 200,
         "body": "Scrape complete",

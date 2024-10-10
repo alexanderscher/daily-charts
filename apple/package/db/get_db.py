@@ -1,6 +1,8 @@
 from .db_conn import (
     SessionLocal,
 )
+from datetime import datetime, timedelta
+import pandas as pd
 from sqlalchemy import exists
 from datetime import datetime
 from .models import SignedArtists
@@ -162,6 +164,47 @@ class FetchDB:
         except Exception as e:
             session.rollback()
             print(f"An error occurred: {e}")
+
+        finally:
+            session.close()
+
+    def get_apple_charts(self):
+        session = SessionLocal()
+
+        yesterday = datetime.now() - timedelta(days=1)
+        yesterday_str = yesterday.strftime("%Y-%m-%d")
+
+        try:
+            charts = (
+                session.query(AppleCharts)
+                .filter(AppleCharts.date == yesterday_str)
+                .all()
+            )
+
+            data = [
+                {
+                    "id": chart.id,
+                    "chart": chart.chart,
+                    "position": chart.position,
+                    "artist": chart.artist,
+                    "song": chart.song,
+                    "unsigned": chart.unsigned,
+                    "l2tk": chart.l2tk,
+                    "movement": chart.movement,
+                    "link": chart.link,
+                    "label": chart.label,
+                    "date": chart.date,
+                }
+                for chart in charts
+            ]
+
+            df = pd.DataFrame(data)
+
+            return df
+
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return None
 
         finally:
             session.close()

@@ -68,3 +68,4 @@ variable "spotify_client_secret_l2tk" {
 variable "spotify_user_id_l2tk" {
   type = string
 }
+
