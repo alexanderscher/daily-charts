@@ -359,77 +359,77 @@ class AppleMusicAPI:
 
         for i, r in enumerate(row):
 
-            artist = r.find_element(
-                By.CLASS_NAME, "songs-list-row__song-name-wrapper"
-            ).text
+            artist = r.find_element(By.CLASS_NAME, "songs-list-row__song-name").text
+            song = r.find_element(By.CLASS_NAME, "songs-list-row__by-line").text
 
-            # song = r.find_element(By.CLASS_NAME, "songs-list-row__song-wrapper").text
+            print(artist, song)
 
-            # song = r.find_element(By.CLASS_NAME, "songs-list-row__song-name").text
-            # artist = r.find_element(
-            #     By.CLASS_NAME, "songs-list__song-link-wrapper"
-            # ).text.split(", ")[0]
+        # song = r.find_element(By.CLASS_NAME, "songs-list-row__song-wrapper").text
 
-            print(artist)
-            # checked_pub = check_prod(self.pub_songs, self.pub_artists, song, artist)
-            # artist_exists = any(
-            #     art.lower() in artist.lower() for art in self.roster_artists
-            # )
-            # if checked_pub or artist_exists:
-            #     self.apple_df.append(
-            #         (name, i + 1, artist, song, None, None, None, None)
-            #     )
-            # else:
-            #     if ", " in artist:
-            #         comma = artist.split(", ", 1)[0]
-            #         if list(
-            #             filter(
-            #                 lambda x: (x.lower() == comma.lower()),
-            #                 self.signed_artists,
-            #             )
-            #         ):
-            #             continue
-            #         else:
-            #             self.apple_df.append(
-            #                 (name, i + 1, artist, song, None, None, None, None)
-            #             )
-            #             continue
-            #     if " & " in artist:
-            #         andpersand = artist.split(" & ")[0]
-            #         if list(
-            #             filter(
-            #                 lambda x: (x.lower() == andpersand.lower()),
-            #                 self.signed_artists,
-            #             )
-            #         ):
-            #             continue
-            #         else:
-            #             self.apple_df.append(
-            #                 (name, i + 1, artist, song, None, None, None, None)
-            #             )
-            #             continue
-            #     if " featuring " in artist:
-            #         feat = artist.split(" featuring ")[0]
-            #         if list(
-            #             filter(
-            #                 lambda x: (x.lower() == feat.lower()), self.signed_artists
-            #             )
-            #         ):
-            #             continue
-            #         else:
-            #             self.apple_df.append(
-            #                 (name, i + 1, feat, song, None, None, None, None)
-            #             )
-            #             continue
-            #     else:
-            #         if not list(
-            #             filter(
-            #                 lambda x: (x.lower() == artist.lower()), self.signed_artists
-            #             )
-            #         ):
-            #             self.apple_df.append(
-            #                 (name, i + 1, artist, song, None, None, None, None)
-            # )
+        # song = r.find_element(By.CLASS_NAME, "songs-list-row__song-name").text
+        # artist = r.find_element(
+        #     By.CLASS_NAME, "songs-list__song-link-wrapper"
+        # ).text.split(", ")[0]
+
+        # checked_pub = check_prod(self.pub_songs, self.pub_artists, song, artist)
+        # artist_exists = any(
+        #     art.lower() in artist.lower() for art in self.roster_artists
+        # )
+        # if checked_pub or artist_exists:
+        #     self.apple_df.append(
+        #         (name, i + 1, artist, song, None, None, None, None)
+        #     )
+        # else:
+        #     if ", " in artist:
+        #         comma = artist.split(", ", 1)[0]
+        #         if list(
+        #             filter(
+        #                 lambda x: (x.lower() == comma.lower()),
+        #                 self.signed_artists,
+        #             )
+        #         ):
+        #             continue
+        #         else:
+        #             self.apple_df.append(
+        #                 (name, i + 1, artist, song, None, None, None, None)
+        #             )
+        #             continue
+        #     if " & " in artist:
+        #         andpersand = artist.split(" & ")[0]
+        #         if list(
+        #             filter(
+        #                 lambda x: (x.lower() == andpersand.lower()),
+        #                 self.signed_artists,
+        #             )
+        #         ):
+        #             continue
+        #         else:
+        #             self.apple_df.append(
+        #                 (name, i + 1, artist, song, None, None, None, None)
+        #             )
+        #             continue
+        #     if " featuring " in artist:
+        #         feat = artist.split(" featuring ")[0]
+        #         if list(
+        #             filter(
+        #                 lambda x: (x.lower() == feat.lower()), self.signed_artists
+        #             )
+        #         ):
+        #             continue
+        #         else:
+        #             self.apple_df.append(
+        #                 (name, i + 1, feat, song, None, None, None, None)
+        #             )
+        #             continue
+        #     else:
+        #         if not list(
+        #             filter(
+        #                 lambda x: (x.lower() == artist.lower()), self.signed_artists
+        #             )
+        #         ):
+        #             self.apple_df.append(
+        #                 (name, i + 1, artist, song, None, None, None, None)
+        # )
 
     def get_copyright_info(self, artist, song, chart_type, source="spotify"):
         artist = artist.lower()
