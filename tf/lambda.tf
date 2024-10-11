@@ -2,6 +2,7 @@ resource "aws_lambda_function" "spotify_charts" {
   function_name = "spotify-charts"
   role          = aws_iam_role.charts_role.arn
   package_type  = "Image"
+  runtime       = "python3.10"
   image_uri     = "${aws_ecr_repository.spotify_charts_ecr.repository_url}:latest"
   timeout       = 480
   memory_size   = 2048
@@ -29,6 +30,7 @@ resource "aws_lambda_function" "velocity" {
   function_name = "velocity"
   role          = aws_iam_role.charts_role.arn
   package_type  = "Image"
+  runtime       = "python3.10"
   image_uri     = "${aws_ecr_repository.velocity_ecr.repository_url}:latest"
   timeout       = 480
   memory_size   = 2048
@@ -54,6 +56,7 @@ resource "aws_lambda_function" "apple_charts" {
   function_name = "apple-charts"
   role          = aws_iam_role.charts_role.arn
   package_type  = "Image"
+  runtime       = "python3.10"
   image_uri     = "${aws_ecr_repository.apple_charts_ecr.repository_url}:latest"
   timeout       = 480
   memory_size   = 2048
@@ -82,6 +85,7 @@ resource "aws_lambda_function" "apple_charts" {
 
 resource "aws_lambda_function" "soundcloud_charts" {
   function_name = "soundcloud-charts"
+  runtime       = "python3.10"
   role          = aws_iam_role.charts_role.arn
   package_type  = "Image"
   image_uri     = "${aws_ecr_repository.soundcloud_charts_ecr.repository_url}:latest"
