@@ -3,7 +3,6 @@ import datetime
 import base64
 from urllib.parse import urlencode
 import time
-import os
 
 
 class SpotifyAPI(object):
@@ -16,9 +15,12 @@ class SpotifyAPI(object):
     oauth_token = None
     token_url = "https://accounts.spotify.com/api/token"
     redirect_uri = "http://localhost:8888/callback"
+
     refresh_token = None
     token_created_at = datetime.datetime.now()
     redirect_uri = "http://localhost:8888/callback"
+    auth_code = "AQCDkqsbi-oT6fd6EXOM-AXDmERQgZJoQYvA2yemw7KdGK3pnGIigUrrffEBi24CkLvNYGz2kqNrzE8PeljqqWcEjyfeby0VTAJSRpd_aHeb1Scjw0KqiaSDK2AXwzbTfOhRJmhlX0uJWpZ5LjySKSrYODXDa_oa7A3QW4f4HJgnJ5fbTsrlYUnS6b-H6wgbfI5BkBehXTLB21dONqDHe9c3lTjBVI0ZDZ9bTokVw2HWr1j_t_VIw2nx_mGmuBoMHLbfWafXhmKzGA"
+    access_token_p = None
 
     def __init__(self, client_id, user_id, client_secret, *args, **kwargs):
         super().__init__(*args, **kwargs)

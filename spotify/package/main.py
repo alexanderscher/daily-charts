@@ -27,9 +27,6 @@ CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
 SPOTIFY_CHART_USERNAME = os.getenv("SPOTIFY_CHART_USERNAME")
 SPOTIFY_CHART_PASSWORD = os.getenv("SPOTIFY_CHART_PASSWORD")
 
-SPOTIFY_CHART_USERNAME = os.getenv("SPOTIFY_CHART_USERNAME")
-SPOTIFY_CHART_PASSWORD = os.getenv("SPOTIFY_CHART_PASSWORD")
-
 
 class Scrape:
     def __init__(self, driver):
@@ -50,10 +47,6 @@ class Scrape:
 
     def spotify_signin(self):
         self.driver.get("https://accounts.spotify.com/en/login")
-        from dotenv import dotenv_values
-
-        config = dotenv_values("/Users/al/Desktop/L2TK.nosync/.env")
-
         input_username = self.driver.find_element(By.XPATH, '//*[@id="login-username"]')
         input_password = self.driver.find_element(By.XPATH, '//*[@id="login-password"]')
         time.sleep(2)
@@ -93,10 +86,6 @@ class Scrape:
 
         self.driver.get(url)
         time.sleep(5)
-
-        n = self.driver.find_element(
-            By.XPATH, '//*[@id="__next"]/div/div[3]/div/div/div[1]/h1/span'
-        )
 
         d = self.driver.find_element(By.XPATH, '//*[@id="date_picker"]')
         date = d.get_attribute("value")
@@ -399,6 +388,7 @@ class Scrape:
             day = str(days).replace(".0", "")
             peak = str(pea).replace(".0", "")
             chart = chart.replace("- Freddy", "")
+            movement = str(movement).replace(".0", "")
             if chart != chart_header:
                 if chart_header:
                     add_content_and_header(chart_header, date)
@@ -416,11 +406,13 @@ class Scrape:
                         )
 
                 if unsigned == "UNSIGNED":
+                    if movement == "0":
+                        movement = "="
                     if movement.startswith("-"):
                         color = "red"
                     elif movement == "NEW":
                         color = "yellow"
-                    elif movement == "0":
+                    elif movement == "=":
                         color = "black"
                     else:
                         color = "green"
@@ -511,6 +503,7 @@ def scrape_all():
 
     driver = webdriver.Chrome(service=service, options=options)
     scrape = Scrape(driver)
+
     scrape.spotify_signin()
     scrape.spotify(
         "SPOTIFY GLOBAL",

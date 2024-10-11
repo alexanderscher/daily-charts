@@ -34,8 +34,8 @@ class Prospect(Base):
     name = Column(String)
 
 
-class AppleCharts(Base):
-    __tablename__ = "apple_charts"
+class ShazamCharts(Base):
+    __tablename__ = "shazam_charts"
     id = Column(Integer, primary_key=True, index=True)
     chart = Column(String)
     position = Column(Integer)

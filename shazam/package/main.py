@@ -1,0 +1,531 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoSuchElementException
+import time
+from botocore.exceptions import ClientError
+import pandas as pd
+import os
+import boto3
+import datetime
+from tempfile import mkdtemp
+from datetime import datetime
+
+pd.set_option("display.max_rows", None)
+pd.set_option("display.max_columns", None)
+pd.set_option("display.width", 1000)
+pd.set_option("display.colheader_justify", "center")
+pd.set_option("display.precision", 3)
+
+from db.get_db import FetchDB
+from spotify_api import SpotifyAPI
+from check import check_prod
+from check import smart_partial_match
+
+CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID_L2TK")
+USER_ID = os.getenv("SPOTIFY_USER_ID_L2TK")
+CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET_L2TK")
+
+db = FetchDB()
+
+
+class Scrape:
+    def __init__(self, driver):
+        self.df = []
+        self.us = []
+        self.l2tk_chart = []
+        self.other = []
+        self.prospect_list = []
+        self.driver = driver
+        self.pub_songs = db.get_pub_songs()
+        self.pub_artists = db.get_pub_artists()
+        self.roster_artists = db.get_roster_artists()
+        self.major_labels = db.get_major_labels()
+        self.signed_artists = db.get_signed_artists()
+        self.prospects = db.get_prospects()
+        self.client = SpotifyAPI(CLIENT_ID, USER_ID, CLIENT_SECRET)
+
+    def download(self, name, url, path):
+        self.driver.get(url)
+        time.sleep(5)
+
+        button = self.driver.find_element(
+            By.CLASS_NAME, "Header_downloadCSVIcon__48xi4"
+        )
+        button.click()
+
+        time.sleep(5)
+        print(path)
+
+        data = pd.read_csv(path, skiprows=2, on_bad_lines="skip")
+
+        for i, row in data.iterrows():
+            s = row["Title"]
+            a = row["Artist"]
+            idx = row["Rank"]
+            if ", " in a:
+                comma = a.split(", ", 1)[0]
+                if list(
+                    filter(
+                        lambda x: (x.lower() == comma.lower()),
+                        self.signed_artists + self.roster_artists,
+                    )
+                ):
+                    continue
+                else:
+                    self.df.append((name, idx, a, s, None, None, None))
+                    continue
+
+            elif " & " in a:
+                andpersand = a.split(" & ")[0]
+                if list(
+                    filter(
+                        lambda x: (x.lower() == andpersand.lower()),
+                        self.signed_artists + self.roster_artists,
+                    )
+                ):
+                    continue
+                else:
+                    self.df.append((name, idx, a, s, None, None, None))
+                    continue
+            if " featuring " in a:
+                ft = a.split(" featuring ")[0]
+                if list(
+                    filter(
+                        lambda x: (x.lower() == ft.lower()),
+                        self.signed_artists + self.roster_artists,
+                    )
+                ):
+                    continue
+                else:
+                    self.df.append((name, idx, a, s, None, None, None))
+                    continue
+            elif " x " in a:
+                ex = a.split(" x ")[0]
+                if list(
+                    filter(
+                        lambda x: (x.lower() == ex.lower()),
+                        self.signed_artists + self.roster_artists,
+                    )
+                ):
+                    continue
+                else:
+                    self.df.append((name, idx, a, s, None, None, None))
+                    continue
+            else:
+                if not list(
+                    filter(
+                        lambda x: (x.lower() == a.lower()),
+                        self.signed_artists + self.roster_artists,
+                    )
+                ):
+                    self.df.append((name, idx, a, s, None, None, None))
+                    continue
+
+        os.remove(path)
+
+    def chart_search(self, shazam_charts):
+
+        for (
+            chart,
+            position,
+            artist,
+            song,
+            movement,
+            link,
+            label,
+            unsigned,
+        ) in shazam_charts.iloc[:].itertuples(index=False):
+
+            if ", " in artist:
+                a = artist.split(", ")
+                artist = a[0]
+
+            if " & " in artist:
+                a = artist.split(" & ")
+                artist = a[0]
+
+            if unsigned == "UNSIGNED":
+
+                self.us.append(
+                    (
+                        chart,
+                        position,
+                        artist,
+                        song,
+                        "UNSIGNED",
+                        None,
+                        link,
+                        label,
+                        movement,
+                    )
+                )
+                continue
+
+            if movement == "New":
+                copyright = self.client.get_artist_copy_track(
+                    artist.lower(), song, "shazam"
+                )
+
+                if not copyright or (
+                    "2023" not in copyright[0] and "2024" not in copyright[0]
+                ):
+
+                    self.us.append(
+                        (
+                            chart,
+                            position,
+                            artist,
+                            song,
+                            None,
+                            None,
+                            movement,
+                            None,
+                            copyright[0] if copyright else None,
+                        )
+                    )
+                    continue
+
+                if copyright:
+                    matched_labels = list(
+                        filter(
+                            lambda x: smart_partial_match(x, copyright[0].lower()),
+                            self.major_labels,
+                        )
+                    )
+
+                    if not matched_labels:
+
+                        self.us.append(
+                            (
+                                chart,
+                                position,
+                                artist,
+                                song,
+                                "UNSIGNED",
+                                None,
+                                copyright[1],
+                                copyright[0],
+                                movement,
+                            )
+                        )
+                    else:
+
+                        self.us.append(
+                            (
+                                chart,
+                                position,
+                                artist,
+                                song,
+                                None,
+                                None,
+                                None,
+                                copyright[0],
+                                movement,
+                            )
+                        )
+
+    def create_html(self, type, chart_name):
+        conor = os.getenv("CONOR")
+        ari = os.getenv("ARI")
+        laura = os.getenv("LAURA")
+        micah = os.getenv("MICAH")
+
+        final_df = unsigned = pd.DataFrame(
+            self.us,
+            columns=[
+                "Chart",
+                "Position",
+                "Artist",
+                "Song",
+                "Unsigned",
+                "L2TK",
+                "Movement",
+                "Days",
+                "Peak",
+                "Link",
+                "Label",
+                "Date",
+            ],
+        )
+
+        html_body = f"""
+        <html>
+        <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; font-size: 12px; color: black; }}
+            h2 {{ font-size: 14px; font-weight: bold; }}
+            a {{ color: black; text-decoration: none; }} /* Unvisited link */
+            a:visited {{ color: black; text-decoration: none; }} /* Visited link */
+            a:hover {{ text-decoration: underline; }} /* Hover effect */
+            .indent {{ padding-left: 20px; }} 
+        </style>
+        </head>
+        <body>
+        <p>
+            {chart_name} - {datetime.datetime.now().strftime("%m/%d/%y")}
+            <br> {conor}, {ari}, {laura}, {micah}
+        </p>
+        """
+
+        chart_header = None
+
+        def add_content_and_header(chart, date):
+            nonlocal html_body
+            if self.l2tk_chart or self.other or self.prospect_list:
+                header_text = f"<br><br><strong style='text-decoration: underline;'>{chart.upper()} - {date.upper()}</strong><br><br>"
+                html_body += header_text
+
+                if self.l2tk_chart:
+                    html_body += "<p>L2TK:</p>"
+                    for p in self.l2tk_chart:
+                        html_body += f"<p>{p}</p>"
+
+                if self.prospect_list:
+                    html_body += "<br><p>PROSPECT:</p>"
+                    for p in self.prospect_list:
+                        html_body += (
+                            f"<p><span style='background-color: red;'>{p}</span></p>"
+                        )
+
+                if self.other:
+                    html_body += "<br><p>NEW ADDS:</p>"
+                    for p in self.other:
+                        html_body += f"<p>{p['c']}</p>"
+
+            self.l2tk_chart = []
+            self.prospect_list = []
+            self.other = []
+
+        for (
+            chart,
+            position,
+            artist,
+            song,
+            unsigned,
+            l2tk,
+            movement,
+            days,
+            pea,
+            link,
+            label,
+            date,
+        ) in final_df.itertuples(index=False):
+            day = str(days).replace(".0", "")
+            peak = str(pea).replace(".0", "")
+            chart = chart.replace("- Freddy", "")
+            if chart != chart_header:
+                if chart_header:
+                    add_content_and_header(chart_header, date)
+
+                chart_header = chart
+
+            if l2tk == "L2TK":
+                if artist.lower() in self.prospects:
+                    self.prospect_list.append(
+                        f"""
+                        {position}. {artist} - {song} ({'=' if movement == '0' else movement})<br>
+                        <span class='indent'>• Days on chart: {day}</span><br>
+                        <span class='indent'>• Peak: {peak}</span>
+                        """
+                    )
+
+            if unsigned == "UNSIGNED":
+                if movement.startswith("-"):
+                    color = "red"
+                elif movement == "NEW":
+                    color = "yellow"
+                elif movement == "0":
+                    color = "black"
+                else:
+                    color = "green"
+
+                self.other.append(
+                    {
+                        "c": f"""
+                        {position}. {artist} - {song} <span style='color:{color};'>({movement})</span><br>
+                        <span class='indent'>• Label: {label} (UNSIGNED)</span><br>
+                        <span class='indent'>• <a href='{link}'>{link}</a></span>
+                        """,
+                        "h": True,
+                    }
+                )
+
+        add_content_and_header(chart_header, date)
+
+        html_body += "</body></html>"
+
+        return html_body
+
+
+def send_email_ses(subject, body) -> None:
+    ses_client = boto3.client(
+        "ses",
+        region_name="us-east-1",
+    )
+    sender = os.getenv("ALEX")
+
+    try:
+        response = ses_client.send_email(
+            Destination={
+                "ToAddresses": [os.getenv("ALEX_MAIL")],
+            },
+            Message={
+                "Body": {
+                    "Html": {
+                        "Charset": "UTF-8",
+                        "Data": body,
+                    },
+                },
+                "Subject": {
+                    "Charset": "UTF-8",
+                    "Data": subject,
+                },
+            },
+            Source=sender,
+        )
+    except ClientError as e:
+        print(f"Error sending email: {e.response['Error']['Message']}")
+    else:
+        print(f"Email sent! Message ID: {response['MessageId']}")
+
+
+def download_shazam(scrape):
+    today = datetime.now()
+    # formatted_date = today.strftime("%d-%m-%Y")
+    formatted_date = "11-10-2024"
+
+    scrape.download(
+        "Shazam Global Top 200 Genres / Hip-Hop",
+        "https://www.shazam.com/charts/genre/world/hip-hop-rap",
+        f"./download/Shazam Top 200 Hip-Hop_Rap {formatted_date}.csv",
+    )
+
+    # scrape.download(
+    #     "Shazam Global Top 200 Genres / Pop",
+    #     "https://www.shazam.com/charts/genre/world/pop",
+    #     f"./download/Shazam Top 200 Pop {formatted_date}.csv",
+    # )
+
+    # scrape.download(
+    #     "Shazam Global Top 100 Genres / ALT",
+    #     "https://www.shazam.com/charts/genre/world/alternative",
+    #     f"./download/Shazam Top 100 Alternative {formatted_date}.csv",
+    # )
+
+    # scrape.download(
+    #     "Shazam Global Top 100 Genres / R&B",
+    #     "https://www.shazam.com/charts/genre/world/randb-soul",
+    #     f"./download/Shazam Top 100 R&B_Soul {formatted_date}.csv",
+    # )
+
+    # scrape.download(
+    #     "Shazam Global Top 100 Genres / Singer Songwriter",
+    #     "https://www.shazam.com/charts/genre/world/singer-songwriter",
+    #     f"./download/Shazam Top 50 Singer_Songwriter {formatted_date}.csv",
+    # )
+
+    # scrape.download(
+    #     "Shazam Global Top 100 Genres / Country",
+    #     "https://www.shazam.com/charts/genre/world/country",
+    #     f"./download/Shazam Top 100 Country {formatted_date}.csv",
+    # )
+
+    scrape.driver.quit()
+
+
+def scrape_all():
+    download_dir = os.path.abspath("./download")
+
+    prefs = {
+        "download.default_directory": download_dir,
+    }
+
+    options = webdriver.ChromeOptions()
+    # options.add_experimental_option("prefs", prefs)
+    # options.binary_location = "/opt/chrome/chrome"
+    # options.add_argument("--headless=new")
+    # options.add_argument("--no-sandbox")
+    # options.add_argument("--disable-gpu")
+    # options.add_argument("--window-size=1963x1696")
+    # options.add_argument("--single-process")
+    # options.add_argument("--disable-dev-shm-usage")
+    # options.add_argument("--disable-dev-tools")
+    # options.add_argument("--no-zygote")
+    # options.add_argument(f"--user-data-dir={mkdtemp()}")
+    # options.add_argument(f"--data-path={mkdtemp()}")
+    # options.add_argument(f"--disk-cache-dir={mkdtemp()}")
+    # options.add_argument("--remote-debugging-port=9222")
+    # service = webdriver.ChromeService("/opt/chromedriver")
+
+    # local
+    from selenium.webdriver.chrome.service import Service
+    from webdriver_manager.chrome import ChromeDriverManager
+
+    service = Service(ChromeDriverManager().install())
+    options.add_experimental_option("prefs", prefs)
+    driver = webdriver.Chrome(service=service, options=options)
+
+    scrape = Scrape(driver)
+    download_shazam(scrape)
+
+    shazam_charts = pd.DataFrame(
+        scrape.df,
+        columns=["Chart", "Position", "Artist", "Song", "Movement", "Link", "Label"],
+    )
+    data_yesterday = db.get_shazam_charts()
+
+    for i, r in shazam_charts.iterrows():
+        pos = r["Position"]
+        chart = r["Chart"]
+        match = data_yesterday.loc[
+            (data_yesterday["song"].str.lower() == r["Song"].lower())
+            & (data_yesterday["chart"].str.lower() == chart.lower())
+        ]
+
+        if not match.empty:
+            shazam_charts.at[i, "Label"] = match["label"].iloc[0]
+            shazam_charts.at[i, "Link"] = match["link"].iloc[0]
+            shazam_charts.at[i, "Unsigned"] = match["unsigned"].iloc[0]
+            pos_y = int(match["position"].iloc[0])
+
+            if pos_y == pos:
+                shazam_charts.at[i, "Movement"] = "0"
+            else:
+                movement_value = pos_y - pos
+                shazam_charts.at[i, "Movement"] = str(movement_value)
+        else:
+            shazam_charts.at[i, "Movement"] = "New"
+
+    shazam_charts["Movement"] = shazam_charts["Movement"].astype(str)
+
+    scrape.chart_search(shazam_charts)
+    unsigned_charts = pd.DataFrame(
+        scrape.us,
+        columns=[
+            "Chart",
+            "Position",
+            "Artist",
+            "Song",
+            "Unsigned",
+            "L2TK",
+            "Link",
+            "Label",
+            "Movement",
+        ],
+    )
+
+    db.insert_shazam_charts(unsigned_charts)
+    body = scrape.create_html("chart", "Shazam Chart Report")
+    subject = f'Shazam Chart Report - {datetime.now().strftime("%m/%d/%y")}'
+    send_email_ses(subject, body)
+
+
+def lambda_handler(event, context):
+    scrape_all()
+    return {
+        "statusCode": 200,
+        "body": "Scrape complete",
+    }
+
+
+lambda_handler(None, None)
