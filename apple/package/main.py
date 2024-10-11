@@ -364,8 +364,6 @@ class AppleMusicAPI:
                 By.CLASS_NAME, "songs-list-row__by-line"
             ).text.split(", ")[0]
 
-            print(artist, song)
-
             checked_pub = check_prod(self.pub_songs, self.pub_artists, song, artist)
             artist_exists = any(
                 art.lower() in artist.lower() for art in self.roster_artists
