@@ -358,6 +358,9 @@ class AppleMusicAPI:
         print(name, len(row))
 
         for i, r in enumerate(row):
+
+            two = r.find_element(By.XPATH, ".//div[2]").text
+
             # song = r.find_element(By.CLASS_NAME, "songs-list-row__song-wrapper").text
 
             # song = r.find_element(By.CLASS_NAME, "songs-list-row__song-name").text
@@ -365,7 +368,7 @@ class AppleMusicAPI:
             #     By.CLASS_NAME, "songs-list__song-link-wrapper"
             # ).text.split(", ")[0]
 
-            print(r.text)
+            print(two)
             # checked_pub = check_prod(self.pub_songs, self.pub_artists, song, artist)
             # artist_exists = any(
             #     art.lower() in artist.lower() for art in self.roster_artists
