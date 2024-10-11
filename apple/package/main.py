@@ -565,26 +565,26 @@ class AppleMusicAPI:
 def scrape_all():
 
     options = webdriver.ChromeOptions()
-    options.binary_location = "/opt/chrome/chrome"
-    options.add_argument("--headless=new")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--window-size=1963x1696")
-    options.add_argument("--single-process")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-dev-tools")
-    options.add_argument("--no-zygote")
-    options.add_argument(f"--user-data-dir={mkdtemp()}")
-    options.add_argument(f"--data-path={mkdtemp()}")
-    options.add_argument(f"--disk-cache-dir={mkdtemp()}")
-    options.add_argument("--remote-debugging-port=9222")
-    service = webdriver.ChromeService("/opt/chromedriver")
+    # options.binary_location = "/opt/chrome/chrome"
+    # options.add_argument("--headless=new")
+    # options.add_argument("--no-sandbox")
+    # options.add_argument("--disable-gpu")
+    # options.add_argument("--window-size=1963x1696")
+    # options.add_argument("--single-process")
+    # options.add_argument("--disable-dev-shm-usage")
+    # options.add_argument("--disable-dev-tools")
+    # options.add_argument("--no-zygote")
+    # options.add_argument(f"--user-data-dir={mkdtemp()}")
+    # options.add_argument(f"--data-path={mkdtemp()}")
+    # options.add_argument(f"--disk-cache-dir={mkdtemp()}")
+    # options.add_argument("--remote-debugging-port=9222")
+    # service = webdriver.ChromeService("/opt/chromedriver")
 
     # local
-    # from selenium.webdriver.chrome.service import Service
-    # from webdriver_manager.chrome import ChromeDriverManager
+    from selenium.webdriver.chrome.service import Service
+    from webdriver_manager.chrome import ChromeDriverManager
 
-    # service = Service(ChromeDriverManager().install())
+    service = Service(ChromeDriverManager().install())
 
     driver = webdriver.Chrome(service=service, options=options)
     scrape = AppleMusicAPI(
@@ -779,11 +779,12 @@ def create_html(type, df, report_name):
                             {position}. {artist} - {song} ({'=' if movement == '0' else movement})
                             """
                     )
+                    continue
 
             if unsigned == "UNSIGNED":
                 if movement.startswith("-"):
                     color = "red"
-                elif movement == "NEW":
+                elif movement == "New":
                     color = "yellow"
                 elif movement == "0":
                     color = "black"
@@ -792,7 +793,7 @@ def create_html(type, df, report_name):
                 other.append(
                     {
                         "c": f"""
-                            {position}. {artist} - {song} <p style='color:{color};'>({movement})</p><br>
+                            {position}. {artist} - {song} <span style='color:{color};'>({movement})</span><br>
                             <span class='indent'>• Label: {label} (UNSIGNED)</span><br>
                             <span class='indent'>• <a href='{link}'>{link}</a></span>
                             """,

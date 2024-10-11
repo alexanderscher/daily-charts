@@ -431,7 +431,7 @@ class Scrape:
                     self.other.append(
                         {
                             "c": f"""
-                            {position}. {artist} - {song} <p style='color:{color};'>({movement})</p><br>
+                            {position}. {artist} - {song} <span style='color:{color};'>({movement})</span><br>
                             <span class='indent'>• Label: {label} (UNSIGNED)</span><br>
                             <span class='indent'>• <a href='{link}'>{link}</a></span>
                             """,
