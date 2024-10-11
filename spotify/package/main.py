@@ -28,6 +28,9 @@ CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
 SPOTIFY_CHART_USERNAME = os.getenv("SPOTIFY_CHART_USERNAME")
 SPOTIFY_CHART_PASSWORD = os.getenv("SPOTIFY_CHART_PASSWORD")
 
+SPOTIFY_CHART_USERNAME = os.getenv("SPOTIFY_CHART_USERNAME")
+SPOTIFY_CHART_PASSWORD = os.getenv("SPOTIFY_CHART_PASSWORD")
+
 
 class Scrape:
     def __init__(self, driver):
@@ -47,33 +50,28 @@ class Scrape:
         self.client = SpotifyAPI(CLIENT_ID, USER_ID, CLIENT_SECRET)
 
     def spotify_signin(self):
-        try:
-            self.driver.get("https://accounts.spotify.com/en/login")
-            time.sleep(5)
-            input_username = self.driver.find_element(
-                By.XPATH, '//*[@id="login-username"]'
-            )
-            input_password = self.driver.find_element(
-                By.XPATH, '//*[@id="login-password"]'
-            )
-            time.sleep(2)
+        self.driver.get("https://accounts.spotify.com/en/login")
+        from dotenv import dotenv_values
 
-            input_username.click()
-            input_username.clear()
-            input_username.send_keys(SPOTIFY_CHART_USERNAME)
-            time.sleep(2)
-            input_password.click()
-            input_password.clear()
-            input_password.send_keys(SPOTIFY_CHART_PASSWORD)
-            time.sleep(2)
-            button_log_in = self.driver.find_element(
-                By.CLASS_NAME, "ButtonInner-sc-14ud5tc-0"
-            )
-            button_log_in.click()
-            time.sleep(10)
-            print("Logged in")
-        except NoSuchElementException:
-            self.spotify_signin()
+        config = dotenv_values("/Users/al/Desktop/L2TK.nosync/.env")
+
+        input_username = self.driver.find_element(By.XPATH, '//*[@id="login-username"]')
+        input_password = self.driver.find_element(By.XPATH, '//*[@id="login-password"]')
+        time.sleep(2)
+
+        input_username.click()
+        input_username.clear()
+        input_username.send_keys(SPOTIFY_CHART_USERNAME)
+        time.sleep(2)
+        input_password.click()
+        input_password.clear()
+        input_password.send_keys(SPOTIFY_CHART_PASSWORD)
+        time.sleep(2)
+        button_log_in = self.driver.find_element(
+            By.CLASS_NAME, "ButtonInner-sc-14ud5tc-0"
+        )
+        button_log_in.click()
+        time.sleep(5)
 
     def check_roster(
         self, name, position, artist, track, ch, days, peak, date, callback
@@ -153,7 +151,7 @@ class Scrape:
                 position,
                 artist,
                 track,
-                "NEW",
+                mov,
                 days,
                 peak,
                 date,
@@ -491,26 +489,26 @@ def send_email_ses(subject, body) -> None:
 def scrape_all():
 
     options = webdriver.ChromeOptions()
-    options.binary_location = "/opt/chrome/chrome"
-    options.add_argument("--headless=new")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--window-size=1963x1696")
-    options.add_argument("--single-process")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-dev-tools")
-    options.add_argument("--no-zygote")
-    options.add_argument(f"--user-data-dir={mkdtemp()}")
-    options.add_argument(f"--data-path={mkdtemp()}")
-    options.add_argument(f"--disk-cache-dir={mkdtemp()}")
-    options.add_argument("--remote-debugging-port=9222")
-    service = webdriver.ChromeService("/opt/chromedriver")
+    # options.binary_location = "/opt/chrome/chrome"
+    # options.add_argument("--headless=new")
+    # options.add_argument("--no-sandbox")
+    # options.add_argument("--disable-gpu")
+    # options.add_argument("--window-size=1963x1696")
+    # options.add_argument("--single-process")
+    # options.add_argument("--disable-dev-shm-usage")
+    # options.add_argument("--disable-dev-tools")
+    # options.add_argument("--no-zygote")
+    # options.add_argument(f"--user-data-dir={mkdtemp()}")
+    # options.add_argument(f"--data-path={mkdtemp()}")
+    # options.add_argument(f"--disk-cache-dir={mkdtemp()}")
+    # options.add_argument("--remote-debugging-port=9222")
+    # service = webdriver.ChromeService("/opt/chromedriver")
 
     # local
-    # from selenium.webdriver.chrome.service import Service
-    # from webdriver_manager.chrome import ChromeDriverManager
+    from selenium.webdriver.chrome.service import Service
+    from webdriver_manager.chrome import ChromeDriverManager
 
-    # service = Service(ChromeDriverManager().install())
+    service = Service(ChromeDriverManager().install())
 
     driver = webdriver.Chrome(service=service, options=options)
     scrape = Scrape(driver)
