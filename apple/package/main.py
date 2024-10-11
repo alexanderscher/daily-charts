@@ -359,10 +359,10 @@ class AppleMusicAPI:
 
         for i, r in enumerate(row):
 
-            song = r.find_element(
-                By.CLASS_NAME, "songs-list-row__song-name"
+            song = r.find_element(By.CLASS_NAME, "songs-list-row__song-name").text
+            artist = r.find_element(
+                By.CLASS_NAME, "songs-list-row__by-line"
             ).text.split(", ")[0]
-            artist = r.find_element(By.CLASS_NAME, "songs-list-row__by-line").text
 
             print(artist, song)
 
