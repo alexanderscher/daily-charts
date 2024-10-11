@@ -38,13 +38,20 @@ def smart_partial_match(label, text):
 
 def velocity():
     client = SpotifyAPI(CLIENT_ID, USER_ID, CLIENT_SECRET)
-    artist_list = client.get_playlist_songs("4iPVyRQvyAricdP1jPAjlQ")
-    data = pd.DataFrame(artist_list, columns=["artist", "track", "added at"])
+    artist_list = client.get_playlist_songs(
+        "4iPVyRQvyAricdP1jPAjlQ", "Spotify Velocity US"
+    )
+    artist_list = client.get_playlist_songs(
+        "0OW9wODqtbU4WnTNOcQASd", "Spotify Velocity Global"
+    )
+
+    data = pd.DataFrame(artist_list, columns=["chart", "artist", "track", "added at"])
 
     for i, d in data.iterrows():
         artist = d["artist"]
         song = d["track"]
         date = d["added at"]
+        chart = d["chart"]
         dt_format = "%Y-%m-%dT%H:%M:%SZ"
         added_at = datetime.strptime(date, dt_format)
         time_frame = datetime.now() - timedelta(days=1)
@@ -65,9 +72,7 @@ def velocity():
                     )
                     if not matched_labels:
                         print(artist, added_at, copyright)
-                        df.append(
-                            ("Velocity", artist, song, copyright[1], copyright[0])
-                        )
+                        df.append((chart, artist, song, copyright[1], copyright[0]))
 
 
 def create_html():
@@ -97,17 +102,25 @@ def create_html():
         </p>
     """
 
-    html_body += (
-        f"<br><br><strong style='text-decoration: underline;'>VELOCITY</strong><br><br>"
-    )
-    html_body += "<br><p>NEW ADDS:</p>"
-
+    chart_header = None
     for chart, artist, song, link, label in final_df.itertuples(index=False):
+        # If this is the first chart or a new chart header
+        if chart != chart_header:
+            # Add a header for the previous chart before moving to the new chart
+            if chart_header:
+                html_body += "<br><p>NEW:</p>"
+
+            # Set the new chart header and append the header for the current chart
+            chart_header = chart
+            html_body += f"<br><br><strong style='text-decoration: underline;'>{chart}</strong><br><br>"
+
+        # Append artist, song, and link details
         html_body += f"""
             <p>{artist} - {song}<br>
             <span class='indent'>• Label: {label}</span><br>
             <span class='indent'>• <a href='{link}'>{link}</a></span></p>
         """
+
     html_body += "</body></html>"
 
     return html_body

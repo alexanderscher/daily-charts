@@ -383,6 +383,7 @@ class AppleMusicAPI:
                     ):
                         continue
                     else:
+                        print("Not signed", artist, song)
                         self.apple_df.append(
                             (name, i + 1, artist, song, None, None, None, None)
                         )
@@ -397,6 +398,7 @@ class AppleMusicAPI:
                     ):
                         continue
                     else:
+                        print("Not signed", artist, song)
                         self.apple_df.append(
                             (name, i + 1, artist, song, None, None, None, None)
                         )
@@ -410,6 +412,7 @@ class AppleMusicAPI:
                     ):
                         continue
                     else:
+                        print("Not signed", artist, song)
                         self.apple_df.append(
                             (name, i + 1, feat, song, None, None, None, None)
                         )
@@ -420,6 +423,7 @@ class AppleMusicAPI:
                             lambda x: (x.lower() == artist.lower()), self.signed_artists
                         )
                     ):
+                        print("Unsigned", artist, song)
                         self.apple_df.append(
                             (name, i + 1, artist, song, None, None, None, None)
                         )
@@ -776,11 +780,19 @@ def create_html(type, df, report_name):
                             """
                     )
 
-            if movement == "New" and unsigned == "UNSIGNED":
+            if unsigned == "UNSIGNED":
+                if movement.startswith("-"):
+                    color = "red"
+                elif movement == "NEW":
+                    color = "yellow"
+                elif movement == "0":
+                    color = "black"
+                else:
+                    color = "green"
                 other.append(
                     {
                         "c": f"""
-                            {position}. {artist} - {song} ({movement})<br>
+                            {position}. {artist} - {song} <p style='color:{color};'>({movement})</p><br>
                             <span class='indent'>• Label: {label} (UNSIGNED)</span><br>
                             <span class='indent'>• <a href='{link}'>{link}</a></span>
                             """,

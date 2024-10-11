@@ -27,6 +27,7 @@ class SpotifyAPI(object):
         self.client_id = client_id
         self.user_id = user_id
         self.client_secret = client_secret
+        self.velocity_df = []
 
     def get_client_credentials(self):
         """
@@ -71,6 +72,95 @@ class SpotifyAPI(object):
             self.perform_auth()
             return self.get_access_token()
         return token
+
+    def get_artist_copy(self, artist_name, coming_from, search_type="artist", offset=0):
+        try:
+            access_token = self.get_access_token()
+            headers = {"Authorization": f"Bearer {access_token}"}
+            endpoint = "https://api.spotify.com/v1/search"
+            data = urlencode(
+                {"q": artist_name, "type": search_type, "limit": 50, "offset": offset}
+            )
+            lookup_url = f"{endpoint}?{data}"
+
+            with requests.get(lookup_url, headers=headers) as r:
+                if r.status_code not in range(200, 299):
+                    if r.status_code == 404:
+                        time.sleep(10)
+                        with requests.get(lookup_url, headers=headers) as retry_r:
+                            if retry_r.status_code == 404:
+                                return None
+                    elif r.status_code == 400:
+                        return None
+                resp = r.json()
+
+            def refine_artist_name(name, source):
+                split_terms = {
+                    "daily_chart": [
+                        ", ",
+                        " (",
+                        " (@",
+                        " featuring ",
+                        " feat. ",
+                        "Genius English Translations - ",
+                        " X ",
+                        " / ",
+                    ],
+                    "spotify": [", ", " (", " featuring ", "feat."],
+                    "shazam": [", ", " & ", " X "],
+                }
+                for term in split_terms.get(source, []):
+                    if term in name:
+                        return name.split(term)[0]
+                return name
+
+            refined_name = refine_artist_name(artist_name, coming_from)
+
+            if refined_name != artist_name:
+                return self.get_artist_copy(
+                    refined_name, coming_from, search_type, offset
+                )
+
+            for artist in resp.get("artists", {}).get("items", []):
+                if (
+                    artist_name.lower() == artist["name"].lower()
+                    and artist["popularity"] > 15
+                ):
+                    artist_id = artist["id"]
+                    albums_endpoint = f"https://api.spotify.com/v1/artists/{artist_id}/albums?include_groups=album,single"
+                    with requests.get(albums_endpoint, headers=headers) as r_album:
+                        albums_resp = r_album.json()
+
+                    filtered_items = [
+                        item
+                        for item in albums_resp.get("items", [])
+                        if item["artists"][0]["name"].lower() == artist_name.lower()
+                    ]
+                    if not filtered_items:
+                        return ("Not On Spotify: Look Up", None)
+
+                    latest_album = sorted(
+                        filtered_items, key=lambda x: x["release_date"], reverse=True
+                    )[0]
+                    album_id = latest_album["id"]
+                    album_endpoint = f"https://api.spotify.com/v1/albums/{album_id}"
+                    with requests.get(
+                        album_endpoint, headers=headers
+                    ) as album_response:
+                        album_data = album_response.json()
+
+                    if "copyrights" in album_data and album_data["copyrights"]:
+                        copyright = album_data["copyrights"][0]["text"]
+                        url = album_data["artists"][0]["external_urls"]["spotify"]
+
+                        return (copyright, url)
+                    else:
+                        return ("No Copyright Information", None)
+
+        except Exception as e:
+            print(f"Exception: {e}")
+            time.sleep(30)
+            return self.get_artist_copy(artist_name, coming_from, search_type, offset)
 
     def get_artist_copy_track(
         self,
@@ -253,8 +343,7 @@ class SpotifyAPI(object):
             time.sleep(30)
             return self.get_artist_copy(artist_name, coming_from, search_type, offset)
 
-    def get_playlist_songs(self, id):
-        df = []
+    def get_playlist_songs(self, id, chart):
         access_token = self.get_access_token()
 
         headers = {"Authorization": f"Bearer {access_token}"}
@@ -273,8 +362,8 @@ class SpotifyAPI(object):
                 artist_name = song["track"]["artists"][0]["name"]
                 track_name = song["track"]["name"]
 
-                df.append((artist_name, track_name, added_at))
+                self.velocity_df.append((chart, artist_name, track_name, added_at))
 
             url = r.get("next")
 
-        return df
+        return self.velocity_df

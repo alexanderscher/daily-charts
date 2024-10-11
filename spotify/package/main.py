@@ -148,22 +148,17 @@ class Scrape:
                         (name, position, artist, track, ch, None, None, date)
                     )
 
-            if mov == "New":
-                self.check_roster(
-                    name,
-                    position,
-                    artist,
-                    track,
-                    "NEW",
-                    days,
-                    peak,
-                    date,
-                    callback,
-                )
-            else:
-                self.check_roster(
-                    name, position, artist, track, f"{ch}", days, peak, date, None
-                )
+            self.check_roster(
+                name,
+                position,
+                artist,
+                track,
+                "NEW",
+                days,
+                peak,
+                date,
+                callback,
+            )
 
     def chart_search(self):
         spotify_df = pd.DataFrame(
@@ -423,11 +418,20 @@ class Scrape:
                             """
                         )
 
-                if movement == "NEW" and unsigned == "UNSIGNED":
+                if unsigned == "UNSIGNED":
+                    if movement.startswith("-"):
+                        color = "red"
+                    elif movement == "NEW":
+                        color = "yellow"
+                    elif movement == "0":
+                        color = "black"
+                    else:
+                        color = "green"
+
                     self.other.append(
                         {
                             "c": f"""
-                            {position}. {artist} - {song} ({movement})<br>
+                            {position}. {artist} - {song} <p style='color:{color};'>({movement})</p><br>
                             <span class='indent'>• Label: {label} (UNSIGNED)</span><br>
                             <span class='indent'>• <a href='{link}'>{link}</a></span>
                             """,
