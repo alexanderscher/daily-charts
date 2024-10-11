@@ -83,14 +83,3 @@ resource "aws_lambda_function" "apple_charts" {
 
 
 
-resource "aws_lambda_function" "soundcloud_charts" {
-  function_name = "soundcloud-charts"
-  runtime       = "python3.10"
-  role          = aws_iam_role.charts_role.arn
-  package_type  = "Image"
-  image_uri     = "${aws_ecr_repository.soundcloud_charts_ecr.repository_url}:latest"
-  timeout       = 480
-  memory_size   = 2048
-
-
-}

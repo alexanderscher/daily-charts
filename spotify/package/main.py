@@ -7,7 +7,6 @@ import pandas as pd
 import os
 import boto3
 import datetime
-import sys
 from tempfile import mkdtemp
 
 pd.set_option("display.max_rows", None)
