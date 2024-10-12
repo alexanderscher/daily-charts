@@ -2,9 +2,11 @@ import re
 
 
 def smart_partial_match(label, text):
+    # Normalize the text to lower case for case-insensitive matching
     normalized_text = text.lower()
     normalized_label = label.lower()
-    pattern = r"(?:^|\s|,)" + re.escape(normalized_label) + r"(?:\s*[/,]\s*|\s|$)"
+    pattern = r"(?:^|\s|,|/)" + re.escape(normalized_label) + r"(?:\s*[/,]\s*|\s|$)"
+
     return re.search(pattern, normalized_text) is not None
 
 
