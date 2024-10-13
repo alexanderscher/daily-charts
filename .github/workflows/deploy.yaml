@@ -1,4 +1,4 @@
-name: Deploy CHarts
+name: Deploy Charts
 on:
   push:
     branches:
