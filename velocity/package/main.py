@@ -14,9 +14,9 @@ pd.set_option("display.precision", 3)
 from db.get_db import FetchDB
 from spotify_api import SpotifyAPI
 
-CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
-USER_ID = os.getenv("SPOTIFY_USER_ID")
-CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
+CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID_L2TK")
+USER_ID = os.getenv("SPOTIFY_USER_ID_L2TK")
+CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET_L2TK")
 
 db = FetchDB()
 
@@ -104,15 +104,11 @@ def create_html():
 
     chart_header = None
     for chart, artist, song, link, label in final_df.itertuples(index=False):
-        # If this is the first chart or a new chart header
         if chart != chart_header:
-            # Add a header for the previous chart before moving to the new chart
-            if chart_header:
-                html_body += "<br><p>NEW:</p>"
 
-            # Set the new chart header and append the header for the current chart
             chart_header = chart
             html_body += f"<br><br><strong style='text-decoration: underline;'>{chart}</strong><br><br>"
+            html_body += "<br><p>NEW:</p>"
 
         # Append artist, song, and link details
         html_body += f"""
