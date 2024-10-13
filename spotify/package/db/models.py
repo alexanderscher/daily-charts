@@ -32,3 +32,21 @@ class Prospect(Base):
     __tablename__ = "prospects"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
+
+
+class SpotifyCharts(Base):
+    __tablename__ = "spotify_charts"
+    id = Column(Integer, primary_key=True, index=True)
+    chart = Column(String)
+    position = Column(Integer)
+    artist = Column(String)
+    song = Column(String)
+    unsigned = Column(String)
+    l2tk = Column(String)
+    movement = Column(String)
+    days = Column(String)
+    peak = Column(String)
+    link = Column(String)
+    label = Column(String)
+    chart_date = Column(Date)
+    date = Column(Date)

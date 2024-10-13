@@ -37,16 +37,16 @@ resource "aws_lambda_function" "velocity" {
 
   environment {
     variables = {
-      SPOTIFY_CLIENT_ID     = var.spotify_client_id
-      SPOTIFY_CLIENT_SECRET = var.spotify_client_secret
-      SPOTIFY_USER_ID       = var.spotify_user_id
-      ALEX                  = var.alex
-      ALEX_MAIL             = var.alex_mail
-      ARI                   = var.ari
-      LAURA                 = var.laura
-      CONOR                 = var.conor
-      MICAH                 = var.micah
-      DB_PASSWORD           = var.db_password
+      SPOTIFY_CLIENT_ID_L2TK     = var.spotify_client_id_l2tk
+      SPOTIFY_CLIENT_SECRET_L2TK = var.spotify_client_secret_l2tk
+      SPOTIFY_USER_ID_L2TK       = var.spotify_user_id_l2tk
+      ALEX                       = var.alex
+      ALEX_MAIL                  = var.alex_mail
+      ARI                        = var.ari
+      LAURA                      = var.laura
+      CONOR                      = var.conor
+      MICAH                      = var.micah
+      DB_PASSWORD                = var.db_password
     }
   }
 
@@ -63,19 +63,19 @@ resource "aws_lambda_function" "apple_charts" {
 
   environment {
     variables = {
-      SPOTIFY_CLIENT_ID     = var.spotify_client_id
-      SPOTIFY_CLIENT_SECRET = var.spotify_client_secret
-      SPOTIFY_USER_ID       = var.spotify_user_id
-      APPLE_TEAM_ID         = var.apple_team_id
-      APPLE_KEY_ID          = var.apple_key_id
-      APPLE_PRIVATE_KEY     = var.apple_private_key
-      ALEX                  = var.alex
-      ALEX_MAIL             = var.alex_mail
-      ARI                   = var.ari
-      LAURA                 = var.laura
-      CONOR                 = var.conor
-      MICAH                 = var.micah
-      DB_PASSWORD           = var.db_password
+      SPOTIFY_CLIENT_ID_ALENA     = var.spotify_client_id_alena
+      SPOTIFY_CLIENT_SECRET_ALENA = var.spotify_client_secret_alena
+      SPOTIFY_USER_ID_ALENA       = var.spotify_user_id_alena
+      APPLE_TEAM_ID               = var.apple_team_id
+      APPLE_KEY_ID                = var.apple_key_id
+      APPLE_PRIVATE_KEY           = var.apple_private_key
+      ALEX                        = var.alex
+      ALEX_MAIL                   = var.alex_mail
+      ARI                         = var.ari
+      LAURA                       = var.laura
+      CONOR                       = var.conor
+      MICAH                       = var.micah
+      DB_PASSWORD                 = var.db_password
     }
   }
 

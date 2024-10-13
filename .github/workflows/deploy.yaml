@@ -1,4 +1,4 @@
-name: Deploy Store Turn
+name: Deploy CHarts
 on:
   push:
     branches:

@@ -8,6 +8,8 @@ import os
 import boto3
 import datetime
 from tempfile import mkdtemp
+import re
+
 
 pd.set_option("display.max_rows", None)
 pd.set_option("display.max_columns", None)
@@ -26,6 +28,8 @@ CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
 
 SPOTIFY_CHART_USERNAME = os.getenv("SPOTIFY_CHART_USERNAME")
 SPOTIFY_CHART_PASSWORD = os.getenv("SPOTIFY_CHART_PASSWORD")
+
+db = FetchDB()
 
 
 class Scrape:
@@ -94,6 +98,7 @@ class Scrape:
         dvg_table_data = self.driver.find_elements(By.TAG_NAME, "td")
         dvg_table_data_length = len(dvg_table_data)
         dvg_columns = int(dvg_table_data_length / dvg_rows)
+        non_latin_pattern = r"[\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\u0400-\u04FF]"
 
         for i, song in enumerate(dvg[1 : len(dvg)]):
             position = (
@@ -130,9 +135,13 @@ class Scrape:
                 if not list(
                     filter(lambda x: (x.lower() == artist.lower()), self.signed_artists)
                 ):
-                    self.df.append(
-                        (name, position, artist, track, ch, None, None, date)
-                    )
+                    if re.search(non_latin_pattern, artist):
+                        print(f"Non-latin artist: {artist}")
+                        pass
+                    else:
+                        self.df.append(
+                            (name, position, artist, track, ch, None, None, date)
+                        )
 
             self.check_roster(
                 name,
@@ -160,6 +169,14 @@ class Scrape:
                 "Date",
             ],
         )
+        data_yesterday = db.get_spotify_charts()
+
+        for i, r in spotify_df.iterrows():
+            match = data_yesterday.loc[(data_yesterday["song"] == r["Song"])]
+            if not match.empty:
+                spotify_df.at[i, "Label"] = match["label"].iloc[0]
+                spotify_df.at[i, "Link"] = match["link"].iloc[0]
+                spotify_df.at[i, "Unsigned"] = match["unsigned"].iloc[0]
 
         for (
             chart,
@@ -170,6 +187,9 @@ class Scrape:
             days,
             peak,
             date,
+            label,
+            link,
+            unsigned_status,
         ) in spotify_df.itertuples(index=False):
 
             if ", " in artist:
@@ -206,98 +226,120 @@ class Scrape:
                         date,
                     )
                 )
-
-            elif list(
-                filter(lambda x: (x.lower() == artist.lower()), self.signed_artists)
-            ):
+                continue
+            if unsigned_status == "UNSIGNED":
+                print(f"{position}.", artist, "-", song, "(UNSIGNED) from yesterday")
                 self.us.append(
                     (
                         chart,
                         position,
                         artist,
                         song,
-                        None,
+                        "UNSIGNED",
                         None,
                         movement,
                         None,
                         None,
-                        None,
-                        None,
+                        link,
+                        label,
                         date,
                     )
                 )
+                continue
 
-            else:
-                if ", " in artist.lower():
-                    a = artist(", ")
-                    artist = a[0]
-                    copyright = self.client.get_artist_copy_track(
-                        artist.lower(), song, "spotify"
+            if movement == "NEW":
+
+                if list(
+                    filter(lambda x: (x.lower() == artist.lower()), self.signed_artists)
+                ):
+                    self.us.append(
+                        (
+                            chart,
+                            position,
+                            artist,
+                            song,
+                            None,
+                            None,
+                            movement,
+                            None,
+                            None,
+                            None,
+                            None,
+                            date,
+                        )
                     )
 
-                elif " featuring " in artist.lower():
-                    a = artist(" featuring ")
-                    artist = a[0]
-                    copyright = self.client.get_artist_copy_track(
-                        artist.lower(), song, "spotify"
-                    )
-
-                elif "feat." in artist.lower():
-                    a = artist("feat.")
-                    artist = a[0]
-                    copyright = self.client.get_artist_copy_track(
-                        artist.lower(), song, "spotify"
-                    )
                 else:
-
-                    copyright = self.client.get_artist_copy_track(
-                        artist.lower(), song, "spotify"
-                    )
-
-                if copyright:
-                    matched_labels = list(
-                        filter(
-                            lambda x: smart_partial_match(x, copyright[0].lower()),
-                            self.major_labels,
-                        )
-                    )
-
-                    if not matched_labels:
-
-                        self.us.append(
-                            (
-                                chart,
-                                position,
-                                artist,
-                                song,
-                                "UNSIGNED",
-                                None,
-                                movement,
-                                None,
-                                None,
-                                copyright[1],
-                                copyright[0],
-                                date,
-                            )
+                    if ", " in artist.lower():
+                        a = artist(", ")
+                        artist = a[0]
+                        copyright = self.client.get_artist_copy_track(
+                            artist.lower(), song, "spotify"
                         )
 
+                    elif " featuring " in artist.lower():
+                        a = artist(" featuring ")
+                        artist = a[0]
+                        copyright = self.client.get_artist_copy_track(
+                            artist.lower(), song, "spotify"
+                        )
+
+                    elif "feat." in artist.lower():
+                        a = artist("feat.")
+                        artist = a[0]
+                        copyright = self.client.get_artist_copy_track(
+                            artist.lower(), song, "spotify"
+                        )
                     else:
-                        self.us.append(
-                            (
-                                chart,
-                                position,
-                                artist,
-                                song,
-                                None,
-                                None,
-                                movement,
-                                None,
-                                None,
-                                None,
-                                None,
-                                date,
+
+                        copyright = self.client.get_artist_copy_track(
+                            artist.lower(), song, "spotify"
+                        )
+
+                    if copyright:
+                        matched_labels = list(
+                            filter(
+                                lambda x: smart_partial_match(x, copyright[0].lower()),
+                                self.major_labels,
                             )
                         )
+
+                        if not matched_labels:
+
+                            self.us.append(
+                                (
+                                    chart,
+                                    position,
+                                    artist,
+                                    song,
+                                    "UNSIGNED",
+                                    None,
+                                    movement,
+                                    None,
+                                    None,
+                                    copyright[1],
+                                    copyright[0],
+                                    date,
+                                )
+                            )
+
+                        else:
+                            self.us.append(
+                                (
+                                    chart,
+                                    position,
+                                    artist,
+                                    song,
+                                    None,
+                                    None,
+                                    movement,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    date,
+                                )
+                            )
 
     def create_html(self, type, chart_name):
         conor = os.getenv("CONOR")
@@ -322,6 +364,7 @@ class Scrape:
                 "Date",
             ],
         )
+        db.insert_spotify_charts(final_df)
 
         html_body = f"""
         <html>
@@ -480,26 +523,26 @@ def send_email_ses(subject, body) -> None:
 def scrape_all():
 
     options = webdriver.ChromeOptions()
-    options.binary_location = "/opt/chrome/chrome"
-    options.add_argument("--headless=new")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--window-size=1963x1696")
-    options.add_argument("--single-process")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-dev-tools")
-    options.add_argument("--no-zygote")
-    options.add_argument(f"--user-data-dir={mkdtemp()}")
-    options.add_argument(f"--data-path={mkdtemp()}")
-    options.add_argument(f"--disk-cache-dir={mkdtemp()}")
-    options.add_argument("--remote-debugging-port=9222")
-    service = webdriver.ChromeService("/opt/chromedriver")
+    # options.binary_location = "/opt/chrome/chrome"
+    # options.add_argument("--headless=new")
+    # options.add_argument("--no-sandbox")
+    # options.add_argument("--disable-gpu")
+    # options.add_argument("--window-size=1963x1696")
+    # options.add_argument("--single-process")
+    # options.add_argument("--disable-dev-shm-usage")
+    # options.add_argument("--disable-dev-tools")
+    # options.add_argument("--no-zygote")
+    # options.add_argument(f"--user-data-dir={mkdtemp()}")
+    # options.add_argument(f"--data-path={mkdtemp()}")
+    # options.add_argument(f"--disk-cache-dir={mkdtemp()}")
+    # options.add_argument("--remote-debugging-port=9222")
+    # service = webdriver.ChromeService("/opt/chromedriver")
 
     # local
-    # from selenium.webdriver.chrome.service import Service
-    # from webdriver_manager.chrome import ChromeDriverManager
+    from selenium.webdriver.chrome.service import Service
+    from webdriver_manager.chrome import ChromeDriverManager
 
-    # service = Service(ChromeDriverManager().install())
+    service = Service(ChromeDriverManager().install())
 
     driver = webdriver.Chrome(service=service, options=options)
     scrape = Scrape(driver)
