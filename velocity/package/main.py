@@ -108,7 +108,7 @@ def create_html():
 
             chart_header = chart
             html_body += f"<br><br><strong style='text-decoration: underline;'>{chart}</strong><br><br>"
-            html_body += "<br><p>NEW:</p>"
+            html_body += "<p>NEW:</p><br>"
 
         # Append artist, song, and link details
         html_body += f"""
