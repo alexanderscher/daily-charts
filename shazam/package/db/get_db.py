@@ -171,15 +171,20 @@ class FetchDB:
 
     def get_shazam_charts(self):
         session = SessionLocal()
-        recent_date = (
-            session.query(ShazamCharts.date).order_by(ShazamCharts.date.desc()).first()
-        )
 
-        if recent_date:
-            most_recent_date_str = recent_date[0].strftime("%Y-%m-%d")
-            print(f"Most recent date found: {most_recent_date_str}")
+        try:
+            today_str = datetime.now().strftime("%Y-%m-%d")
 
-            try:
+            recent_date = (
+                session.query(ShazamCharts.date)
+                .filter(ShazamCharts.date != today_str)  # Exclude today's date
+                .order_by(ShazamCharts.date.desc())
+                .first()
+            )
+
+            if recent_date:
+                most_recent_date_str = recent_date[0].strftime("%Y-%m-%d")
+
                 charts = (
                     session.query(ShazamCharts)
                     .filter(ShazamCharts.date == most_recent_date_str)
@@ -207,13 +212,13 @@ class FetchDB:
 
                 return df
 
-            except Exception as e:
-                print(f"An error occurred: {e}")
+            else:
+                print("No recent date found in Shazam charts.")
                 return None
 
-            finally:
-                session.close()
-        else:
-            print("No recent date found in Shazam charts.")
-            session.close()
+        except Exception as e:
+            print(f"An error occurred: {e}")
             return None
+
+        finally:
+            session.close()
