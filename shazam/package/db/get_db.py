@@ -134,9 +134,9 @@ class FetchDB:
                     song,
                     unsigned,
                     l2tk,
-                    movement,
                     link,
                     label,
+                    movement,
                 ) in data.itertuples(index=False):
 
                     movement = str(movement) if movement is not None else "0"
@@ -164,6 +164,7 @@ class FetchDB:
         except Exception as e:
             session.rollback()
             print(f"An error occurred: {e}")
+            raise e
 
         finally:
             session.close()
