@@ -21,9 +21,9 @@ from db.get_db import FetchDB
 from spotify_api import SpotifyAPI
 from check import smart_partial_match
 
-CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID_L2TK")
-USER_ID = os.getenv("SPOTIFY_USER_ID_L2TK")
-CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET_L2TK")
+CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
+USER_ID = os.getenv("SPOTIFY_USER_ID")
+CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
 
 db = FetchDB()
 
