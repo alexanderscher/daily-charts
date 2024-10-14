@@ -1,13 +1,14 @@
 import requests
-import datetime
+from datetime import datetime, timedelta
 import base64
 from urllib.parse import urlencode
 import time
+import re
 
 
 class SpotifyAPI(object):
     access_token = None
-    access_token_expires = datetime.datetime.now()
+    access_token_expires = datetime.now()
     access_token_did_expire = True
     client_id = None
     user_id = None
@@ -17,7 +18,7 @@ class SpotifyAPI(object):
     redirect_uri = "http://localhost:8888/callback"
 
     refresh_token = None
-    token_created_at = datetime.datetime.now()
+    token_created_at = datetime.now()
     redirect_uri = "http://localhost:8888/callback"
     auth_code = "AQCDkqsbi-oT6fd6EXOM-AXDmERQgZJoQYvA2yemw7KdGK3pnGIigUrrffEBi24CkLvNYGz2kqNrzE8PeljqqWcEjyfeby0VTAJSRpd_aHeb1Scjw0KqiaSDK2AXwzbTfOhRJmhlX0uJWpZ5LjySKSrYODXDa_oa7A3QW4f4HJgnJ5fbTsrlYUnS6b-H6wgbfI5BkBehXTLB21dONqDHe9c3lTjBVI0ZDZ9bTokVw2HWr1j_t_VIw2nx_mGmuBoMHLbfWafXhmKzGA"
     access_token_p = None
@@ -56,10 +57,10 @@ class SpotifyAPI(object):
         if r.status_code not in range(200, 299):
             raise Exception("Could not authenticate client.")
         data = r.json()
-        now = datetime.datetime.now()
+        now = datetime.now()
         access_token = data["access_token"]
         expires_in = data["expires_in"]
-        expires = now + datetime.timedelta(seconds=expires_in)
+        expires = now + timedelta(seconds=expires_in)
         self.access_token = access_token
         self.access_token_expires = expires
         self.access_token_did_expire = expires < now
@@ -343,7 +344,10 @@ class SpotifyAPI(object):
             time.sleep(30)
             return self.get_artist_copy(artist_name, coming_from, search_type, offset)
 
-    def get_playlist_songs(self, id, chart):
+    def get_playlist_songs(
+        self, id, chart, signed_artists, major_label, smart_partial_match
+    ):
+
         access_token = self.get_access_token()
 
         headers = {"Authorization": f"Bearer {access_token}"}
@@ -358,11 +362,53 @@ class SpotifyAPI(object):
             playlist_items = r["items"]
 
             for song in playlist_items:
-                added_at = song["added_at"]
+                date = song["added_at"]
                 artist_name = song["track"]["artists"][0]["name"]
                 track_name = song["track"]["name"]
 
-                self.velocity_df.append((chart, artist_name, track_name, added_at))
+                dt_format = "%Y-%m-%dT%H:%M:%SZ"
+                added_at = datetime.strptime(date, dt_format)
+                time_frame = datetime.now() - timedelta(days=1)
+
+                if added_at >= time_frame:
+                    if not list(
+                        filter(
+                            lambda x: (x.lower() == artist_name.lower()), signed_artists
+                        )
+                    ):
+
+                        id = song["track"]["album"]["id"]
+                        album_endpoint = f"https://api.spotify.com/v1/albums/{id}"
+                        album = requests.get(album_endpoint, headers=headers).json()
+                        copyright = album["copyrights"][0]["text"]
+                        url = song["track"]["external_urls"]["spotify"]
+
+                        year_pattern = r"202[0-4]"
+                        if copyright:
+                            if not re.search(year_pattern, copyright):
+                                continue
+                            else:
+
+                                matched_labels = list(
+                                    filter(
+                                        lambda x: smart_partial_match(
+                                            x, copyright.lower()
+                                        ),
+                                        major_label,
+                                    )
+                                )
+                                if not matched_labels:
+                                    print(artist_name, copyright)
+
+                                    self.velocity_df.append(
+                                        (
+                                            chart,
+                                            artist_name,
+                                            track_name,
+                                            url,
+                                            copyright,
+                                        )
+                                    )
 
             url = r.get("next")
 

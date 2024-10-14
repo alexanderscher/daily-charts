@@ -115,50 +115,6 @@ class FetchDB:
         finally:
             session.close()
 
-    def get_spotify_charts(self):
-        session = SessionLocal()
-
-        yesterday = datetime.now() - timedelta(days=1)
-        yesterday_str = yesterday.strftime("%Y-%m-%d")
-
-        try:
-            charts = (
-                session.query(SpotifyCharts)
-                .filter(SpotifyCharts.date == yesterday_str)
-                .all()
-            )
-
-            data = [
-                {
-                    "id": chart.id,
-                    "chart": chart.chart,
-                    "position": chart.position,
-                    "artist": chart.artist,
-                    "song": chart.song,
-                    "unsigned": chart.unsigned,
-                    "l2tk": chart.l2tk,
-                    "movement": chart.movement,
-                    "days": chart.days,
-                    "peak": chart.peak,
-                    "link": chart.link,
-                    "label": chart.label,
-                    "chart_date": chart.chart_date,
-                    "date": chart.date,
-                }
-                for chart in charts
-            ]
-
-            df = pd.DataFrame(data)
-
-            return df
-
-        except Exception as e:
-            print(f"An error occurred: {e}")
-            return None
-
-        finally:
-            session.close()
-
     def insert_spotify_charts(self, data):
         session = SessionLocal()
         current_date = datetime.now().date()
@@ -213,6 +169,67 @@ class FetchDB:
         except Exception as e:
             session.rollback()
             print(f"An error occurred: {e}")
+            raise e
+
+        finally:
+            session.close()
+
+    def get_spotify_charts(self):
+        session = SessionLocal()
+
+        try:
+            # Get today's date as a string
+            today_str = datetime.now().strftime("%Y-%m-%d")
+
+            # Get the most recent date that is not today
+            recent_date = (
+                session.query(SpotifyCharts.date)
+                .filter(SpotifyCharts.date != today_str)  # Exclude today's date
+                .order_by(SpotifyCharts.date.desc())
+                .first()
+            )
+
+            if recent_date:
+                most_recent_date_str = recent_date[0].strftime("%Y-%m-%d")
+                print(most_recent_date_str)
+
+                # Fetch all charts for the most recent date
+                charts = (
+                    session.query(SpotifyCharts)
+                    .filter(SpotifyCharts.date == most_recent_date_str)
+                    .all()
+                )
+
+                data = [
+                    {
+                        "id": chart.id,
+                        "chart": chart.chart,
+                        "position": chart.position,
+                        "artist": chart.artist,
+                        "song": chart.song,
+                        "unsigned": chart.unsigned,
+                        "l2tk": chart.l2tk,
+                        "movement": chart.movement,
+                        "days": chart.days,
+                        "peak": chart.peak,
+                        "link": chart.link,
+                        "label": chart.label,
+                        "chart_date": chart.chart_date,
+                        "date": chart.date,
+                    }
+                    for chart in charts
+                ]
+
+                df = pd.DataFrame(data)
+
+                return df
+            else:
+                print("No recent date found in Spotify charts.")
+                return None
+
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return None
 
         finally:
             session.close()

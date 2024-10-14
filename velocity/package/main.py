@@ -39,40 +39,25 @@ def smart_partial_match(label, text):
 def velocity():
     client = SpotifyAPI(CLIENT_ID, USER_ID, CLIENT_SECRET)
     artist_list = client.get_playlist_songs(
-        "4iPVyRQvyAricdP1jPAjlQ", "Spotify Velocity US"
+        "4iPVyRQvyAricdP1jPAjlQ",
+        "Spotify Velocity US",
+        signed_artists,
+        majorlabels,
+        smart_partial_match,
     )
     artist_list = client.get_playlist_songs(
-        "0OW9wODqtbU4WnTNOcQASd", "Spotify Velocity Global"
+        "0OW9wODqtbU4WnTNOcQASd",
+        "Spotify Velocity Global",
+        signed_artists,
+        majorlabels,
+        smart_partial_match,
     )
 
-    data = pd.DataFrame(artist_list, columns=["chart", "artist", "track", "added at"])
+    data = pd.DataFrame(
+        artist_list, columns=["chart", "artist", "song", "link", "label"]
+    )
 
-    for i, d in data.iterrows():
-        artist = d["artist"]
-        song = d["track"]
-        date = d["added at"]
-        chart = d["chart"]
-        dt_format = "%Y-%m-%dT%H:%M:%SZ"
-        added_at = datetime.strptime(date, dt_format)
-        time_frame = datetime.now() - timedelta(days=1)
-
-        if added_at >= time_frame:
-            if not list(
-                filter(lambda x: (x.lower() == artist.lower()), signed_artists)
-            ):
-                copyright = client.get_artist_copy_track(
-                    artist.lower(), song.lower(), "daily_chart"
-                )
-                if copyright:
-                    matched_labels = list(
-                        filter(
-                            lambda x: smart_partial_match(x, copyright[0].lower()),
-                            majorlabels,
-                        )
-                    )
-                    if not matched_labels:
-                        print(artist, added_at, copyright)
-                        df.append((chart, artist, song, copyright[1], copyright[0]))
+    return data
 
 
 def create_html():
@@ -81,7 +66,7 @@ def create_html():
     laura = os.getenv("LAURA")
     micah = os.getenv("MICAH")
 
-    final_df = pd.DataFrame(df, columns=["chart", "artist", "song", "link", "label"])
+    final_df = velocity()
 
     html_body = f"""
         <html>
@@ -108,7 +93,7 @@ def create_html():
 
             chart_header = chart
             html_body += f"<br><br><strong style='text-decoration: underline;'>{chart}</strong><br><br>"
-            html_body += "<p>NEW:</p><br>"
+            html_body += "<p>NEW:</p>"
 
         # Append artist, song, and link details
         html_body += f"""
@@ -155,7 +140,6 @@ def send_email_ses(subject, body) -> None:
 
 
 def scrape_all():
-    velocity()
     body = create_html()
     subject = f'Velocity  Report - {datetime.now().strftime("%m/%d/%y")}'
     send_email_ses(subject, body)

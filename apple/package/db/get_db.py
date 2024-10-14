@@ -171,36 +171,52 @@ class FetchDB:
     def get_apple_charts(self):
         session = SessionLocal()
 
-        yesterday = datetime.now() - timedelta(days=1)
-        yesterday_str = yesterday.strftime("%Y-%m-%d")
-
         try:
-            charts = (
-                session.query(AppleCharts)
-                .filter(AppleCharts.date == yesterday_str)
-                .all()
+            # Get today's date as a string
+            today_str = datetime.now().strftime("%Y-%m-%d")
+
+            # Get the most recent date that is not today
+            recent_date = (
+                session.query(AppleCharts.date)
+                .filter(AppleCharts.date != today_str)  # Exclude today's date
+                .order_by(AppleCharts.date.desc())
+                .first()
             )
 
-            data = [
-                {
-                    "id": chart.id,
-                    "chart": chart.chart,
-                    "position": chart.position,
-                    "artist": chart.artist,
-                    "song": chart.song,
-                    "unsigned": chart.unsigned,
-                    "l2tk": chart.l2tk,
-                    "movement": chart.movement,
-                    "link": chart.link,
-                    "label": chart.label,
-                    "date": chart.date,
-                }
-                for chart in charts
-            ]
+            if recent_date:
+                most_recent_date_str = recent_date[0].strftime("%Y-%m-%d")
+                print(most_recent_date_str)
 
-            df = pd.DataFrame(data)
+                # Fetch all charts for the most recent date
+                charts = (
+                    session.query(AppleCharts)
+                    .filter(AppleCharts.date == most_recent_date_str)
+                    .all()
+                )
 
-            return df
+                data = [
+                    {
+                        "id": chart.id,
+                        "chart": chart.chart,
+                        "position": chart.position,
+                        "artist": chart.artist,
+                        "song": chart.song,
+                        "unsigned": chart.unsigned,
+                        "l2tk": chart.l2tk,
+                        "movement": chart.movement,
+                        "link": chart.link,
+                        "label": chart.label,
+                        "date": chart.date,
+                    }
+                    for chart in charts
+                ]
+
+                df = pd.DataFrame(data)
+
+                return df
+            else:
+                print("No recent date found in Apple charts.")
+                return None
 
         except Exception as e:
             print(f"An error occurred: {e}")

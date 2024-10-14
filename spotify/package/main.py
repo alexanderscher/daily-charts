@@ -116,14 +116,14 @@ class Scrape:
             )
 
             try:
-                ch = int(prev) - int(position)
-                if ch > 0:
-                    ch = "+" f"{ch}"
+                mov = int(prev) - int(position)
+                if mov > 0:
+                    mov = "+" f"{mov}"
             except ValueError:
                 if peak != position and prev == "—":
-                    ch = "RE-ENTRY"
+                    mov = "RE-ENTRY"
                 else:
-                    ch = "NEW"
+                    mov = "NEW"
 
             song_anchors = dvg_table_data[i * dvg_columns + 2].find_elements(
                 By.XPATH, ".//a"
@@ -140,7 +140,7 @@ class Scrape:
                         pass
                     else:
                         self.df.append(
-                            (name, position, artist, track, ch, None, None, date)
+                            (name, position, artist, track, mov, None, None, date)
                         )
 
             self.check_roster(
