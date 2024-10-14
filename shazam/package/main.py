@@ -9,6 +9,7 @@ import boto3
 import datetime
 from tempfile import mkdtemp
 from datetime import datetime
+import re
 
 pd.set_option("display.max_rows", None)
 pd.set_option("display.max_columns", None)
@@ -18,7 +19,6 @@ pd.set_option("display.precision", 3)
 
 from db.get_db import FetchDB
 from spotify_api import SpotifyAPI
-from check import check_prod
 from check import smart_partial_match
 
 CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID_L2TK")
@@ -47,6 +47,7 @@ class Scrape:
     def download(self, name, url, path):
         self.driver.get(url)
         time.sleep(5)
+        non_latin_pattern = r"[\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\u0400-\u04FF]"
 
         button = self.driver.find_element(
             By.CLASS_NAME, "Header_downloadCSVIcon__48xi4"
@@ -118,8 +119,15 @@ class Scrape:
                         self.signed_artists + self.roster_artists,
                     )
                 ):
-                    self.df.append((name, idx, a, s, None, None, None))
-                    continue
+                    if re.search(non_latin_pattern, a):
+                        print(f"Non-latin artist: {a}")
+                        pass
+                    elif re.search(non_latin_pattern, s):
+                        print(f"Non-latin artist: {a}")
+                        pass
+                    else:
+                        self.df.append((name, idx, a, s, None, None, None))
+                        continue
 
         os.remove(path)
 
@@ -224,29 +232,11 @@ class Scrape:
                             )
                         )
 
-    def create_html(self, type, chart_name):
+    def create_html(self, type, chart_name, data):
         conor = os.getenv("CONOR")
         ari = os.getenv("ARI")
         laura = os.getenv("LAURA")
         micah = os.getenv("MICAH")
-
-        final_df = unsigned = pd.DataFrame(
-            self.us,
-            columns=[
-                "Chart",
-                "Position",
-                "Artist",
-                "Song",
-                "Unsigned",
-                "L2TK",
-                "Movement",
-                "Days",
-                "Peak",
-                "Link",
-                "Label",
-                "Date",
-            ],
-        )
 
         html_body = f"""
         <html>
@@ -262,23 +252,18 @@ class Scrape:
         </head>
         <body>
         <p>
-            {chart_name} - {datetime.datetime.now().strftime("%m/%d/%y")}
+            {chart_name} - {datetime.now().strftime("%m/%d/%y")}
             <br> {conor}, {ari}, {laura}, {micah}
         </p>
         """
 
         chart_header = None
 
-        def add_content_and_header(chart, date):
+        def add_content_and_header(chart):
             nonlocal html_body
             if self.l2tk_chart or self.other or self.prospect_list:
-                header_text = f"<br><br><strong style='text-decoration: underline;'>{chart.upper()} - {date.upper()}</strong><br><br>"
+                header_text = f"<br><br><strong style='text-decoration: underline;'>{chart.upper()}</strong><br><br>"
                 html_body += header_text
-
-                if self.l2tk_chart:
-                    html_body += "<p>L2TK:</p>"
-                    for p in self.l2tk_chart:
-                        html_body += f"<p>{p}</p>"
 
                 if self.prospect_list:
                     html_body += "<br><p>PROSPECT:</p>"
@@ -303,31 +288,15 @@ class Scrape:
             song,
             unsigned,
             l2tk,
-            movement,
-            days,
-            pea,
             link,
             label,
-            date,
-        ) in final_df.itertuples(index=False):
-            day = str(days).replace(".0", "")
-            peak = str(pea).replace(".0", "")
-            chart = chart.replace("- Freddy", "")
+            movement,
+        ) in data.itertuples(index=False):
+
             if chart != chart_header:
                 if chart_header:
-                    add_content_and_header(chart_header, date)
-
+                    add_content_and_header(chart_header)
                 chart_header = chart
-
-            if l2tk == "L2TK":
-                if artist.lower() in self.prospects:
-                    self.prospect_list.append(
-                        f"""
-                        {position}. {artist} - {song} ({'=' if movement == '0' else movement})<br>
-                        <span class='indent'>• Days on chart: {day}</span><br>
-                        <span class='indent'>• Peak: {peak}</span>
-                        """
-                    )
 
             if unsigned == "UNSIGNED":
                 if movement.startswith("-"):
@@ -350,7 +319,7 @@ class Scrape:
                     }
                 )
 
-        add_content_and_header(chart_header, date)
+        add_content_and_header(chart_header)
 
         html_body += "</body></html>"
 
@@ -426,6 +395,53 @@ def download_shazam(scrape):
         "Shazam Global Top 100 Genres / Country",
         "https://www.shazam.com/charts/genre/world/country",
         f"./download/Shazam Top 100 Country {formatted_date}.csv",
+    )
+
+    scrape.download(
+        "Shazam Top 200 / Global",
+        "https://www.shazam.com/charts/top-200/world",
+        f"/Users/al/Desktop/L2TK.nosync/shazam_cities/csv/Shazam Top 200 Global Chart - The most Shazamed tracks in the world {formatted_date}.csv",
+    )
+
+    scrape.download(
+        "Shazam Top 200 / US",
+        "https://www.shazam.com/charts/top-200/united-states",
+        f"/Users/al/Desktop/L2TK.nosync/shazam_cities/csv/Shazam Top 200 United States Chart {formatted_date}.csv",
+    )
+
+    scrape.download(
+        "Shazam Top 200 / UK",
+        "https://www.shazam.com/charts/top-200/united-kingdom",
+        f"/Users/al/Desktop/L2TK.nosync/shazam_cities/csv/Shazam Top 200 United Kingdom Chart {formatted_date}.csv",
+    )
+
+    scrape.download(
+        "Shazam Top 200 / CA",
+        "https://www.shazam.com/charts/top-200/canada",
+        f"/Users/al/Desktop/L2TK.nosync/shazam_cities/csv/Shazam Top 200 Canada Chart {formatted_date}.csv",
+    )
+    scrape.download(
+        "Shazam US Top 100 Genres / Hip-Hop",
+        "https://www.shazam.com/charts/genre/united-states/hip-hop-rap",
+        f"/Users/al/Desktop/L2TK.nosync/shazam_cities/csv/Shazam Top 100 Hip-Hop_Rap {formatted_date}.csv",
+    )
+
+    scrape.download(
+        "Shazam US Top 100 Genres / Pop",
+        "https://www.shazam.com/charts/genre/united-states/pop",
+        f"/Users/al/Desktop/L2TK.nosync/shazam_cities/csv/Shazam Top 100 Pop {formatted_date}.csv",
+    )
+
+    scrape.download(
+        "Shazam US Top 100 Genres / Dance",
+        "https://www.shazam.com/charts/genre/united-states/dance",
+        f"/Users/al/Desktop/L2TK.nosync/shazam_cities/csv/Shazam Top 100 Dance {formatted_date}.csv",
+    )
+
+    scrape.download(
+        "Shazam US Top 100 Genres / Country",
+        "https://www.shazam.com/charts/genre/united-states/country",
+        f"/Users/al/Desktop/L2TK.nosync/shazam_cities/csv/Shazam Top 100 Country {formatted_date}.csv",
     )
 
     scrape.driver.quit()
@@ -513,7 +529,7 @@ def scrape_all():
     )
 
     db.insert_shazam_charts(unsigned_charts)
-    body = scrape.create_html("chart", "Shazam Chart Report")
+    body = scrape.create_html("chart", "Shazam Chart Report", unsigned_charts)
     subject = f'Shazam Chart Report - {datetime.now().strftime("%m/%d/%y")}'
     send_email_ses(subject, body)
 
