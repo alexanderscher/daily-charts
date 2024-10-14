@@ -78,5 +78,29 @@ resource "aws_lambda_function" "apple_charts" {
 
 }
 
+resource "aws_lambda_function" "shazam_charts" {
+  function_name = "shazam-charts"
+  role          = aws_iam_role.charts_role.arn
+  package_type  = "Image"
+  image_uri     = "${aws_ecr_repository.shazam_charts_ecr.repository_url}:latest"
+  timeout       = 480
+  memory_size   = 2048
+
+  environment {
+    variables = {
+      SPOTIFY_CLIENT_ID_ALENA = var.spotify_client_id
+      SPOTIFY_CLIENT_SECRET   = var.spotify_client_secret
+      SPOTIFY_USER_ID         = var.spotify_user_id
+      ALEX                    = var.alex
+      ALEX_MAIL               = var.alex_mail
+      ARI                     = var.ari
+      LAURA                   = var.laura
+      CONOR                   = var.conor
+      MICAH                   = var.micah
+      DB_PASSWORD             = var.db_password
+    }
+  }
+
+}
 
 

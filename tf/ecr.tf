@@ -28,3 +28,11 @@ data "aws_ecr_image" "apple_charts_ecr" {
   image_tag       = "latest"
 }
 
+resource "aws_ecr_repository" "shazam_charts_ecr" {
+  name = "shazam-charts-ecr"
+}
+
+data "aws_ecr_image" "shazam_charts_ecr" {
+  repository_name = aws_ecr_repository.shazam_charts_ecr.name
+  image_tag       = "latest"
+}
