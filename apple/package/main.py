@@ -13,6 +13,7 @@ import boto3
 from botocore.exceptions import ClientError
 from selenium.webdriver.support import expected_conditions as EC
 import pandas as pd
+import numpy as np
 
 pd.set_option("display.max_rows", None)
 pd.set_option("display.max_columns", None)
@@ -349,7 +350,7 @@ class AppleMusicAPI:
                 "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});",
                 element,
             )
-            time.sleep(5)
+            time.sleep(2)
 
         row = self.driver.find_elements(By.CLASS_NAME, "songs-list-row")
         print(name, len(row))
@@ -360,6 +361,8 @@ class AppleMusicAPI:
             artist = r.find_element(
                 By.CLASS_NAME, "songs-list-row__by-line"
             ).text.split(", ")[0]
+            if artist == "":
+                raise ValueError("Artist is empty")
 
             checked_pub = check_prod(self.pub_songs, self.pub_artists, song, artist)
             artist_exists = any(
@@ -574,26 +577,26 @@ class AppleMusicAPI:
 def scrape_all():
 
     options = webdriver.ChromeOptions()
-    options.binary_location = "/opt/chrome/chrome"
-    options.add_argument("--headless=new")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--window-size=1963x1696")
-    options.add_argument("--single-process")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-dev-tools")
-    options.add_argument("--no-zygote")
-    options.add_argument(f"--user-data-dir={mkdtemp()}")
-    options.add_argument(f"--data-path={mkdtemp()}")
-    options.add_argument(f"--disk-cache-dir={mkdtemp()}")
-    options.add_argument("--remote-debugging-port=9222")
-    service = webdriver.ChromeService("/opt/chromedriver")
+    # options.binary_location = "/opt/chrome/chrome"
+    # options.add_argument("--headless=new")
+    # options.add_argument("--no-sandbox")
+    # options.add_argument("--disable-gpu")
+    # options.add_argument("--window-size=1963x1696")
+    # options.add_argument("--single-process")
+    # options.add_argument("--disable-dev-shm-usage")
+    # options.add_argument("--disable-dev-tools")
+    # options.add_argument("--no-zygote")
+    # options.add_argument(f"--user-data-dir={mkdtemp()}")
+    # options.add_argument(f"--data-path={mkdtemp()}")
+    # options.add_argument(f"--disk-cache-dir={mkdtemp()}")
+    # options.add_argument("--remote-debugging-port=9222")
+    # service = webdriver.ChromeService("/opt/chromedriver")
 
     # local
-    # from selenium.webdriver.chrome.service import Service
-    # from webdriver_manager.chrome import ChromeDriverManager
+    from selenium.webdriver.chrome.service import Service
+    from webdriver_manager.chrome import ChromeDriverManager
 
-    # service = Service(ChromeDriverManager().install())
+    service = Service(ChromeDriverManager().install())
 
     driver = webdriver.Chrome(service=service, options=options)
     scrape = AppleMusicAPI(
@@ -632,6 +635,7 @@ def scrape_all():
         "APPLE MUSIC TOP SONGS - SINGER SONGWRITER",
         "https://music.apple.com/us/browse/top-charts/songs/?genreId=10",
     )
+    scrape.driver.quit()
     scrape.charts("APPLE MUSIC TOP ALBUMS - ALL GENRES", None)
     scrape.charts("APPLE MUSIC TOP ALBUMS - HIP-HOP", 18)
     scrape.charts("APPLE MUSIC TOP ALBUMS - ALT", 20)
@@ -662,9 +666,7 @@ def scrape_all():
             "Date",
         ],
     )
-    print(
-        scrape.apple_df,
-    )
+
     data_yesterday = db.get_apple_charts()
     for i, r in apple_data.iterrows():
         pos = r["Position"]
@@ -704,6 +706,7 @@ def scrape_all():
             "Label",
         ],
     )
+    final_data = final_data.replace({np.nan: None})
 
     return final_data
 
