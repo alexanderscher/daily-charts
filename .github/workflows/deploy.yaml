@@ -84,7 +84,7 @@ jobs:
 
           docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/apple-charts-ecr:latest --push --provenance=false ./apple
 
-          docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/shazam-charts-ecr:latest --push --provenance=false ./apple
+          docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/shazam-charts-ecr:latest --push --provenance=false ./shazam
 
       # Step 7: Update the Lambda function with the new image
       - name: Update Lambda Function with New Image
