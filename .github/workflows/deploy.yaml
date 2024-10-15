@@ -27,6 +27,53 @@ jobs:
       - name: Check STS Identity
         run: aws sts get-caller-identity
 
+      - name: Cleanup ECR Images
+        run: |
+          IMAGES=$(aws ecr list-images --repository-name spotify-charts-ecr --query 'imageIds[*]' --output json)
+          if [ "$IMAGES" != "[]" ]; then
+            aws ecr batch-delete-image \
+              --repository-name spotify-charts-ecr \
+              --image-ids "$IMAGES"
+          else
+            echo "No images to delete."
+          fi
+
+          IMAGES=$(aws ecr list-images --repository-name velocity-ecr --query 'imageIds[*]' --output json)
+          if [ "$IMAGES" != "[]" ]; then
+            aws ecr batch-delete-image \
+              --repository-name velocity-ecr \
+              --image-ids "$IMAGES"
+          else
+            echo "No images to delete."
+          fi
+
+          IMAGES=$(aws ecr list-images --repository-name apple-charts-ecr --query 'imageIds[*]' --output json)
+          if [ "$IMAGES" != "[]" ]; then
+            aws ecr batch-delete-image \
+              --repository-name apple-charts-ecr \
+              --image-ids "$IMAGES"
+          else
+            echo "No images to delete."
+          fi
+
+          IMAGES=$(aws ecr list-images --repository-name shazam-charts-ecr --query 'imageIds[*]' --output json)
+          if [ "$IMAGES" != "[]" ]; then
+            aws ecr batch-delete-image \
+              --repository-name shazam-charts-ecr \
+              --image-ids "$IMAGES"
+          else
+            echo "No images to delete."
+          fi
+
+          IMAGES=$(aws ecr list-images --repository-name no-track-ecr --query 'imageIds[*]' --output json)
+          if [ "$IMAGES" != "[]" ]; then
+            aws ecr batch-delete-image \
+              --repository-name no-track-ecr \
+              --image-ids "$IMAGES"
+          else
+            echo "No images to delete."
+          fi
+
       # Step 3: Create the terraform-secrets.tfvars file from GitHub secrets
       - name: Create terraform-secrets.tfvars
         run: |
