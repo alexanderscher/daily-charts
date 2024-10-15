@@ -268,7 +268,7 @@ class Scrape:
                 )
                 continue
 
-            if movement == "NEW":
+            if movement == "NEW" or movement == "RE-ENTRY":
 
                 if list(
                     filter(lambda x: (x.lower() == artist.lower()), self.signed_artists)
