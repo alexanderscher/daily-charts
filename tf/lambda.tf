@@ -104,3 +104,23 @@ resource "aws_lambda_function" "shazam_charts" {
 }
 
 
+resource "aws_lambda_function" "no_track" {
+  function_name = "no-track"
+  role          = aws_iam_role.charts_role.arn
+  package_type  = "Image"
+  image_uri     = "${aws_ecr_repository.no_track_ecr.repository_url}:latest"
+  timeout       = 480
+  memory_size   = 2048
+
+  environment {
+    variables = {
+      GOOGLE_CLIENT_EMAIL = var.google_client_email
+      GOOGLE_PRIVATE_KEY  = var.google_private_key
+      GOOGLE_PROJECT_ID   = var.google_project_id
+
+    }
+  }
+
+}
+
+

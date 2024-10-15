@@ -93,3 +93,15 @@ variable "apple_private_key" {
   type = string
 }
 
+variable "google_private_key" {
+  type = string
+
+}
+
+variable "google_client_email" {
+  type = string
+}
+
+variable "google_project_id" {
+  type = string
+}

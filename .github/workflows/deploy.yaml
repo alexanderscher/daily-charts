@@ -66,6 +66,15 @@ jobs:
             echo "No images to delete."
           fi
 
+          IMAGES=$(aws ecr list-images --repository-name no-track-ecr --query 'imageIds[*]' --output json)
+          if [ "$IMAGES" != "[]" ]; then
+            aws ecr batch-delete-image \
+              --repository-name no-track-ecr \
+              --image-ids "$IMAGES"
+          else
+            echo "No images to delete."
+          fi
+
       # Step 4: Set up Docker Buildx (needed for multi-platform builds)
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -86,6 +95,8 @@ jobs:
 
           docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/shazam-charts-ecr:latest --push --provenance=false ./shazam
 
+          docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/shazam-charts-ecr:latest --push --provenance=false ./notrack
+
       # Step 7: Update the Lambda function with the new image
       - name: Update Lambda Function with New Image
         run: |
@@ -104,6 +115,10 @@ jobs:
           aws lambda update-function-code \
           --function-name shazam-charts \
           --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/shazam-charts-ecr:latest
+
+          aws lambda update-function-code \
+          --function-name shazam-charts \
+          --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/no-track-ecr:latest
 
       # Step 8: Install Terraform
       - name: Install Terraform
@@ -147,6 +162,9 @@ jobs:
             -var "spotify_client_id_alena=${{ secrets.SPOTIFY_CLIENT_ID_ALENA }}" \
             -var "spotify_client_secret_alena=${{ secrets.SPOTIFY_CLIENT_SECRET_ALENA }}" \
             -var "spotify_user_id_alena=${{ secrets.SPOTIFY_USER_ID_ALENA }}" \
+            -var "google_private_key=${{ secrets.GOOGLE_PRIVATE_KEY }}" \
+            -var "google_client_email=${{ secrets.GOOGLE_CLIENT_EMAIL }}" \
+            -var "google_project_id=${{ secrets.GOOGLE_PROJECT_ID }}" \
 
         working-directory: ./tf/
 
@@ -178,5 +196,8 @@ jobs:
             -var "spotify_client_id_alena=${{ secrets.SPOTIFY_CLIENT_ID_ALENA }}" \
             -var "spotify_client_secret_alena=${{ secrets.SPOTIFY_CLIENT_SECRET_ALENA }}" \
             -var "spotify_user_id_alena=${{ secrets.SPOTIFY_USER_ID_ALENA }}" \
+            -var "google_private_key=${{ secrets.GOOGLE_PRIVATE_KEY }}" \
+            -var "google_client_email=${{ secrets.GOOGLE_CLIENT_EMAIL }}" \
+            -var "google_project_id=${{ secrets.GOOGLE_PROJECT_ID }}" \
 
         working-directory: ./tf/
