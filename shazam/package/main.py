@@ -13,7 +13,7 @@ from datetime import datetime
 import re
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+import requests
 
 pd.set_option("display.max_rows", None)
 pd.set_option("display.max_columns", None)
@@ -55,12 +55,19 @@ class Scrape:
         time.sleep(5)
         non_latin_pattern = r"[\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\u0400-\u04FF]"
 
-        button = self.driver.find_element(
+        button_url = self.driver.find_element(
             By.CLASS_NAME, "Header_responsiveView__srGi_"
         ).get_attribute("href")
+        print(f"Download URL: {button_url}")
 
-        self.driver.get(button)
-        time.sleep(5)
+        response = requests.get(button_url)
+        if response.status_code == 200:
+            with open(path, "wb") as f:
+                f.write(response.content)
+            print(f"CSV file saved to {path}")
+        else:
+            print(f"Failed to download CSV. Status code: {response.status_code}")
+            return
 
         data = pd.read_csv(path, skiprows=2, on_bad_lines="skip")
 
@@ -372,88 +379,87 @@ def send_email_ses(subject, body) -> None:
 
 def download_shazam(scrape):
     today = datetime.now(pacific_tz)
-    formatted_date = today.strftime("%d-%m-%Y")
     scrape.download(
         "Shazam Global Top 200 Genres / Hip-Hop",
         "https://www.shazam.com/charts/genre/world/hip-hop-rap",
-        f"/tmp/Shazam Top 200 Hip-Hop_Rap {formatted_date}.csv",
+        f"/tmp/Shazam Top 200 Hip-Hop_Rap.csv",
     )
 
     scrape.download(
         "Shazam Global Top 200 Genres / Pop",
         "https://www.shazam.com/charts/genre/world/pop",
-        f"/tmp/Shazam Top 200 Pop {formatted_date}.csv",
+        f"/tmp/Shazam Top 200 Pop.csv",
     )
 
     scrape.download(
         "Shazam Global Top 100 Genres / ALT",
         "https://www.shazam.com/charts/genre/world/alternative",
-        f"/tmp/Shazam Top 100 Alternative {formatted_date}.csv",
+        f"/tmp/Shazam Top 100 Alternative.csv",
     )
 
     scrape.download(
         "Shazam Global Top 100 Genres / R&B",
         "https://www.shazam.com/charts/genre/world/randb-soul",
-        f"/tmp/Shazam Top 100 R&B_Soul {formatted_date}.csv",
+        f"/tmp/Shazam Top 100 R&B_Soul.csv",
     )
 
     scrape.download(
         "Shazam Global Top 100 Genres / Singer Songwriter",
         "https://www.shazam.com/charts/genre/world/singer-songwriter",
-        f"/tmp/Shazam Top 50 Singer_Songwriter {formatted_date}.csv",
+        f"/tmp/Shazam Top 50 Singer_Songwriter.csv",
     )
 
     scrape.download(
         "Shazam Global Top 100 Genres / Country",
         "https://www.shazam.com/charts/genre/world/country",
-        f"/tmp/Shazam Top 100 Country {formatted_date}.csv",
+        f"/tmp/Shazam Top 100 Country.csv",
     )
 
     scrape.download(
         "Shazam Top 200 / Global",
         "https://www.shazam.com/charts/top-200/world",
-        f"/tmp/Shazam Top 200 Global Chart - The most Shazamed tracks in the world {formatted_date}.csv",
+        f"/tmp/Shazam Top 200 Global Chart - The most Shazamed tracks in the world.csv",
     )
 
     scrape.download(
         "Shazam Top 200 / US",
         "https://www.shazam.com/charts/top-200/united-states",
-        f"/tmp/Shazam Top 200 United States Chart {formatted_date}.csv",
+        f"/tmp/Shazam Top 200 United States Chart.csv",
     )
 
     scrape.download(
         "Shazam Top 200 / UK",
         "https://www.shazam.com/charts/top-200/united-kingdom",
-        f"/tmp/Shazam Top 200 United Kingdom Chart {formatted_date}.csv",
+        f"/tmp/Shazam Top 200 United Kingdom Chart.csv",
     )
 
     scrape.download(
         "Shazam Top 200 / CA",
         "https://www.shazam.com/charts/top-200/canada",
-        f"/tmp/Shazam Top 200 Canada Chart {formatted_date}.csv",
+        f"/tmp/Shazam Top 200 Canada Chart.csv",
     )
     scrape.download(
         "Shazam US Top 100 Genres / Hip-Hop",
         "https://www.shazam.com/charts/genre/united-states/hip-hop-rap",
-        f"/tmp/Shazam Top 100 Hip-Hop_Rap {formatted_date}.csv",
+        f"/tmp/Shazam Top 100 Hip-Hop_Rap.csv",
     )
 
     scrape.download(
         "Shazam US Top 100 Genres / Pop",
         "https://www.shazam.com/charts/genre/united-states/pop",
-        f"/tmp/Shazam Top 100 Pop {formatted_date}.csv",
+        f"/tmp/Shazam Top 100 Pop.csv",
     )
 
     scrape.download(
         "Shazam US Top 100 Genres / Dance",
         "https://www.shazam.com/charts/genre/united-states/dance",
-        f"/tmp/Shazam Top 100 Dance {formatted_date}.csv",
+        f"/tmp/Shazam Top 100 Dance.csv",
     )
 
     scrape.download(
         "Shazam US Top 100 Genres / Country",
         "https://www.shazam.com/charts/genre/united-states/country",
-        f"/tmp/Shazam Top 100 Country {formatted_date}.csv",
+        f"/tmp/Shazam Top 100 Country.csv",
     )
 
     scrape.driver.quit()
@@ -461,12 +467,7 @@ def download_shazam(scrape):
 
 def scrape_all():
 
-    prefs = {
-        "download.default_directory": "/tmp",
-    }
-
     options = webdriver.ChromeOptions()
-    options.add_experimental_option("prefs", prefs)
     options.binary_location = "/opt/chrome/chrome"
     options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
@@ -494,7 +495,6 @@ def scrape_all():
     #     "download.default_directory": download_dir,
     # }
 
-    options.add_experimental_option("prefs", prefs)
     driver = webdriver.Chrome(service=service, options=options)
 
     scrape = Scrape(driver)
