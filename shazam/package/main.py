@@ -553,4 +553,4 @@ def lambda_handler(event, context):
     }
 
 
-lambda_handler(None, None)
+# lambda_handler(None, None)
