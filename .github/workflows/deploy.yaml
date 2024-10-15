@@ -27,7 +27,7 @@ jobs:
       - name: Check STS Identity
         run: aws sts get-caller-identity
 
-      # Step 3: Cleanup old ECR images before building new one
+      # Step 3: Cleanup old ECR images before building new ones
       - name: Cleanup ECR Images
         run: |
           IMAGES=$(aws ecr list-images --repository-name spotify-charts-ecr --query 'imageIds[*]' --output json)
@@ -84,17 +84,13 @@ jobs:
         run: |
           aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 742736545134.dkr.ecr.us-east-1.amazonaws.com
 
-      # Step 6: Build and Push the Docker image to ECR
+      # Step 6: Build and Push Docker Image to ECR
       - name: Build and Push Docker Image to ECR
         run: |
           docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/spotify-charts-ecr:latest --push --provenance=false ./spotify
-
           docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/velocity-ecr:latest --push --provenance=false ./velocity
-
           docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/apple-charts-ecr:latest --push --provenance=false ./apple
-
           docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/shazam-charts-ecr:latest --push --provenance=false ./shazam
-
           docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/no-track-ecr:latest --push --provenance=false ./notrack
 
       # Step 7: Update the Lambda function with the new image
@@ -103,101 +99,58 @@ jobs:
           aws lambda update-function-code \
             --function-name spotify-charts \
             --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/spotify-charts-ecr:latest
-
           aws lambda update-function-code \
-          --function-name velocity \
-          --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/velocity-ecr:latest
-
+            --function-name velocity \
+            --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/velocity-ecr:latest
           aws lambda update-function-code \
-          --function-name apple-charts \
-          --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/apple-charts-ecr:latest
-
+            --function-name apple-charts \
+            --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/apple-charts-ecr:latest
           aws lambda update-function-code \
-          --function-name shazam-charts \
-          --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/shazam-charts-ecr:latest
-
+            --function-name shazam-charts \
+            --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/shazam-charts-ecr:latest
           aws lambda update-function-code \
-          --function-name no-track \
-          --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/no-track-ecr:latest
+            --function-name no-track \
+            --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/no-track-ecr:latest
 
-      # Step 8: Install Terraform
+      # Step 8: Create tfvars file dynamically
+      - name: Create tfvars file
+        run: |
+          cat <<EOF > terraform-secrets.tfvars
+          apple_team_id = "${{ secrets.APPLE_TEAM_ID }}"
+          apple_key_id = "${{ secrets.APPLE_KEY_ID }}"
+          apple_private_key = "${{ secrets.APPLE_PRIVATE_KEY }}"
+          aws_access_key_id = "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          aws_secret_access_key = "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          google_private_key = <<EOF2
+          ${{ secrets.GOOGLE_PRIVATE_KEY }}
+          EOF2
+          google_client_email = "${{ secrets.GOOGLE_CLIENT_EMAIL }}"
+          google_project_id = "${{ secrets.GOOGLE_PROJECT_ID }}"
+          spotify_client_id_l2tk = "${{ secrets.SPOTIFY_CLIENT_ID_L2TK }}"
+          spotify_client_secret_l2tk = "${{ secrets.SPOTIFY_CLIENT_SECRET_L2TK }}"
+          spotify_user_id_l2tk = "${{ secrets.SPOTIFY_USER_ID_L2TK }}"
+          EOF
+
+      # Step 9: Install Terraform
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2
 
-      # Step 9: Initialize Terraform
+      # Step 10: Initialize Terraform
       - name: Initialize Terraform
         run: terraform init
         working-directory: ./tf/
 
-      # Step 10: Validate Terraform configuration
+      # Step 11: Validate Terraform configuration
       - name: Validate Terraform
         run: terraform validate
         working-directory: ./tf/
 
-      # Step 11: Plan Terraform changes
+      # Step 12: Plan Terraform changes
       - name: Terraform Plan
-
-        run: |
-          terraform plan \
-            -var "apple_team_id=${{ secrets.APPLE_TEAM_ID }}" \
-            -var "apple_key_id=${{ secrets.APPLE_KEY_ID }}" \
-            -var "apple_private_key=${{ secrets.APPLE_PRIVATE_KEY }}" \
-            -var "aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}" \
-            -var "aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
-            -var "alex=${{ secrets.ALEX }}" \
-            -var "alex_mail=${{ secrets.ALEX_MAIL }}" \
-            -var "conor=${{ secrets.CONOR }}" \
-            -var "ari=${{ secrets.ARI }}" \
-            -var "laura=${{ secrets.LAURA }}" \
-            -var "micah=${{ secrets.MICAH }}" \
-            -var "spotify_chart_username=${{ secrets.SPOTIFY_CHART_USERNAME }}" \
-            -var "spotify_chart_password=${{ secrets.SPOTIFY_CHART_PASSWORD }}" \
-            -var "db_password=${{ secrets.DB_PASSWORD }}" \
-            -var "spotify_client_id=${{ secrets.SPOTIFY_CLIENT_ID }}" \
-            -var "spotify_client_secret=${{ secrets.SPOTIFY_CLIENT_SECRET }}" \
-            -var "spotify_user_id=${{ secrets.SPOTIFY_USER_ID }}" \
-            -var "spotify_client_id_l2tk=${{ secrets.SPOTIFY_CLIENT_ID_L2TK }}" \
-            -var "spotify_client_secret_l2tk=${{ secrets.SPOTIFY_CLIENT_SECRET_L2TK }}" \
-            -var "spotify_user_id_l2tk=${{ secrets.SPOTIFY_USER_ID_L2TK }}" \
-            -var "spotify_client_id_alena=${{ secrets.SPOTIFY_CLIENT_ID_ALENA }}" \
-            -var "spotify_client_secret_alena=${{ secrets.SPOTIFY_CLIENT_SECRET_ALENA }}" \
-            -var "spotify_user_id_alena=${{ secrets.SPOTIFY_USER_ID_ALENA }}" \
-            -var "google_private_key=${{ secrets.GOOGLE_PRIVATE_KEY }}" \
-            -var "google_client_email=${{ secrets.GOOGLE_CLIENT_EMAIL }}" \
-            -var "google_project_id=${{ secrets.GOOGLE_PROJECT_ID }}" \
-
+        run: terraform plan -var-file=terraform-secrets.tfvars
         working-directory: ./tf/
 
-      # Step 12: Apply Terraform changes
+      # Step 13: Apply Terraform changes
       - name: Apply Terraform Changes
-
-        run: |
-          terraform apply -auto-approve \
-            -var "apple_team_id=${{ secrets.APPLE_TEAM_ID }}" \
-            -var "apple_key_id=${{ secrets.APPLE_KEY_ID }}" \
-            -var "apple_private_key=${{ secrets.APPLE_PRIVATE_KEY }}" \
-            -var "aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}" \
-            -var "aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
-            -var "alex=${{ secrets.ALEX }}" \
-            -var "alex_mail=${{ secrets.ALEX_MAIL }}" \
-            -var "conor=${{ secrets.CONOR }}" \
-            -var "ari=${{ secrets.ARI }}" \
-            -var "laura=${{ secrets.LAURA }}" \
-            -var "micah=${{ secrets.MICAH }}" \
-            -var "spotify_chart_username=${{ secrets.SPOTIFY_CHART_USERNAME }}" \
-            -var "spotify_chart_password=${{ secrets.SPOTIFY_CHART_PASSWORD }}" \
-            -var "db_password=${{ secrets.DB_PASSWORD }}" \
-            -var "spotify_client_id=${{ secrets.SPOTIFY_CLIENT_ID }}" \
-            -var "spotify_client_secret=${{ secrets.SPOTIFY_CLIENT_SECRET }}" \
-            -var "spotify_user_id=${{ secrets.SPOTIFY_USER_ID }}" \
-            -var "spotify_client_id_l2tk=${{ secrets.SPOTIFY_CLIENT_ID_L2TK }}" \
-            -var "spotify_client_secret_l2tk=${{ secrets.SPOTIFY_CLIENT_SECRET_L2TK }}" \
-            -var "spotify_user_id_l2tk=${{ secrets.SPOTIFY_USER_ID_L2TK }}" \
-            -var "spotify_client_id_alena=${{ secrets.SPOTIFY_CLIENT_ID_ALENA }}" \
-            -var "spotify_client_secret_alena=${{ secrets.SPOTIFY_CLIENT_SECRET_ALENA }}" \
-            -var "spotify_user_id_alena=${{ secrets.SPOTIFY_USER_ID_ALENA }}" \
-            -var "google_private_key=${{ secrets.GOOGLE_PRIVATE_KEY }}" \
-            -var "google_client_email=${{ secrets.GOOGLE_CLIENT_EMAIL }}" \
-            -var "google_project_id=${{ secrets.GOOGLE_PROJECT_ID }}" \
-
+        run: terraform apply -var-file=terraform-secrets.tfvars -auto-approve
         working-directory: ./tf/
