@@ -95,7 +95,7 @@ jobs:
 
           docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/shazam-charts-ecr:latest --push --provenance=false ./shazam
 
-          docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/shazam-charts-ecr:latest --push --provenance=false ./notrack
+          docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/no-track-ecr:latest --push --provenance=false ./notrack
 
       # Step 7: Update the Lambda function with the new image
       - name: Update Lambda Function with New Image
