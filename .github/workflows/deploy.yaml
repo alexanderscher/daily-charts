@@ -106,10 +106,10 @@ jobs:
 
       # Step 11: Plan Terraform changes
       - name: Terraform Plan
-        run: terraform plan -var-file=terraform-secrets.tfvars
+        run: terraform plan -var-file=$GITHUB_WORKSPACE/terraform-secrets.tfvars
         working-directory: ./tf/
 
       # Step 12: Apply Terraform changes
       - name: Apply Terraform Changes
-        run: terraform plan -var-file=terraform-secrets.tfvars
+        run: terraform plan -var-file=$GITHUB_WORKSPACE/terraform-secrets.tfvars
         working-directory: ./tf/
