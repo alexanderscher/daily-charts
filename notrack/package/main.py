@@ -1,8 +1,23 @@
 import os
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+import boto3
 
-private_key = os.getenv("GOOGLE_PRIVATE_KEY").replace("\\n", "\n")
+
+def get_secret(secret_name):
+    region_name = "us-east-1"
+
+    client = boto3.client("secretsmanager", region_name=region_name)
+
+    try:
+        response = client.get_secret_value(SecretId=secret_name)
+        return response["SecretString"]
+    except Exception as e:
+        print(f"Error retrieving secret: {e}")
+        return None
+
+
+google_private_key = get_secret("google_private_key")
 client_email = os.getenv("GOOGLE_CLIENT_EMAIL")
 project_id = os.getenv("GOOGLE_PROJECT_ID")
 
@@ -15,7 +30,7 @@ creds_dict = {
     "type": "service_account",
     "project_id": project_id,
     "private_key_id": "",
-    "private_key": private_key,
+    "private_key": google_private_key,
     "client_email": client_email,
     "client_id": "",
     "auth_uri": "https://accounts.google.com/o/oauth2/auth",
