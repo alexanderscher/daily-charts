@@ -30,7 +30,7 @@ jobs:
       # Step 3: Create the terraform-secrets.tfvars file from GitHub secrets
       - name: Create terraform-secrets.tfvars
         run: |
-          cat <<EOF > ./tf/terraform-secrets.tfvars
+          cat <<EOF > terraform-secrets.tfvars
           apple_team_id = "${{ secrets.APPLE_TEAM_ID }}"
           apple_key_id = "${{ secrets.APPLE_KEY_ID }}"
           apple_private_key = "${{ secrets.APPLE_PRIVATE_KEY }}"
@@ -60,6 +60,8 @@ jobs:
           google_client_email = "${{ secrets.GOOGLE_CLIENT_EMAIL }}"
           google_project_id = "${{ secrets.GOOGLE_PROJECT_ID }}"
           EOF
+      - name: Verify terraform-secrets.tfvars creation
+        run: ls -la
 
       # Step 4: Set up Docker Buildx (needed for multi-platform builds)
       # - name: Set up Docker Buildx
@@ -104,10 +106,10 @@ jobs:
 
       # Step 11: Plan Terraform changes
       - name: Terraform Plan
-        run: terraform plan -var-file=./tf/terraform-secrets.tfvars
+        run: terraform plan -var-file=terraform-secrets.tfvars
         working-directory: ./tf/
 
       # Step 12: Apply Terraform changes
       - name: Apply Terraform Changes
-        run: terraform apply -auto-approve -var-file=./tf/terraform-secrets.tfvars
+        run: terraform plan -var-file=terraform-secrets.tfvars
         working-directory: ./tf/
