@@ -230,6 +230,24 @@ class Scrape:
                     )
                 )
                 continue
+            if unsigned_status != "UNSIGNED" and movement != "NEW":
+                self.us.append(
+                    (
+                        chart,
+                        position,
+                        artist,
+                        song,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                    )
+                )
+                continue
             if unsigned_status == "UNSIGNED":
                 print(f"{position}.", artist, "-", song, "(UNSIGNED) from yesterday")
                 self.us.append(

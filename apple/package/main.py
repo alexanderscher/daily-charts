@@ -89,6 +89,7 @@ class AppleMusicAPI:
         self.pub_albums = db.get_pub_albums()
         self.spotify_client = SpotifyAPI(CLIENT_ID, USER_ID, CLIENT_SECRET)
         self.us = []
+        self.already_checked = []
 
     def token_is_valid(self):
         return (
@@ -488,13 +489,31 @@ class AppleMusicAPI:
                     )
                 )
                 continue
-
+            if artist in self.already_checked:
+                print("already_checked", artist)
+                continue
+            if unsigned_status != "UNSIGNED" and movement != "New":
+                self.us.append(
+                    (
+                        chart,
+                        position,
+                        ogartist,
+                        song,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                    )
+                )
+                continue
             if any(x.lower() == artist.lower() for x in self.signed_artists):
                 self.us.append(
                     (chart, position, ogartist, song, None, None, movement, None, label)
                 )
                 continue
-            if unsigned_status == "UNSIGNED":
+            if unsigned_status == "UNSIGNED" and movement != "New":
+                print(artist, song, link, label, "from yesterday")
                 self.us.append(
                     (
                         chart,
