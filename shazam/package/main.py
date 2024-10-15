@@ -242,14 +242,10 @@ class Scrape:
                                 None,
                                 None,
                                 None,
-                                None,
-                                None,
                                 copyright[1],
                                 copyright[0],
                             )
                         )
-
-                    print(f"{position}.", artist, song, "signed", movement)
 
     def create_html(self, chart_name, data):
         conor = os.getenv("CONOR")
