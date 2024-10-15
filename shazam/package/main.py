@@ -30,7 +30,6 @@ USER_ID = os.getenv("SPOTIFY_USER_ID")
 CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
 
 db = FetchDB()
-
 pacific_tz = timezone("America/Los_Angeles")
 
 
@@ -55,15 +54,12 @@ class Scrape:
         time.sleep(5)
         non_latin_pattern = r"[\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\u0400-\u04FF]"
 
-        download_icon = WebDriverWait(self.driver, 10).until(
-            EC.element_to_be_clickable(
-                (By.CSS_SELECTOR, ".Header_downloadCSVIcon__48xi4")
-            )
-        )
-        download_icon.click()
+        button = self.driver.find_element(
+            By.CLASS_NAME, "Header_responsiveView__srGi_"
+        ).get_attribute("href")
 
-        time.sleep(5)
-        print(path)
+        self.driver.get(button)
+        time.sleep(2)
 
         data = pd.read_csv(path, skiprows=2, on_bad_lines="skip")
 
@@ -556,4 +552,4 @@ def lambda_handler(event, context):
     }
 
 
-# lambda_handler(None, None)
+lambda_handler(None, None)

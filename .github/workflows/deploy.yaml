@@ -162,7 +162,7 @@ jobs:
             -var "spotify_client_id_alena=${{ secrets.SPOTIFY_CLIENT_ID_ALENA }}" \
             -var "spotify_client_secret_alena=${{ secrets.SPOTIFY_CLIENT_SECRET_ALENA }}" \
             -var "spotify_user_id_alena=${{ secrets.SPOTIFY_USER_ID_ALENA }}" \
-            -var "google_private_key=$(echo $GOOGLE_PRIVATE_KEY | sed 's/\\n/\n/g')" \
+            -var "google_private_key=${{ secrets.GOOGLE_PRIVATE_KEY }}" \
             -var "google_client_email=${{ secrets.GOOGLE_CLIENT_EMAIL }}" \
             -var "google_project_id=${{ secrets.GOOGLE_PROJECT_ID }}" \
 
@@ -196,7 +196,7 @@ jobs:
             -var "spotify_client_id_alena=${{ secrets.SPOTIFY_CLIENT_ID_ALENA }}" \
             -var "spotify_client_secret_alena=${{ secrets.SPOTIFY_CLIENT_SECRET_ALENA }}" \
             -var "spotify_user_id_alena=${{ secrets.SPOTIFY_USER_ID_ALENA }}" \
-            -var "google_private_key=$(echo $GOOGLE_PRIVATE_KEY | sed 's/\\n/\n/g')" \
+            -var "google_private_key=${{ secrets.GOOGLE_PRIVATE_KEY }}" \
             -var "google_client_email=${{ secrets.GOOGLE_CLIENT_EMAIL }}" \
             -var "google_project_id=${{ secrets.GOOGLE_PROJECT_ID }}" \
 
