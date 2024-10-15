@@ -376,84 +376,84 @@ def download_shazam(scrape):
     scrape.download(
         "Shazam Global Top 200 Genres / Hip-Hop",
         "https://www.shazam.com/charts/genre/world/hip-hop-rap",
-        f"./download/Shazam Top 200 Hip-Hop_Rap {formatted_date}.csv",
+        f"/tmp/Shazam Top 200 Hip-Hop_Rap {formatted_date}.csv",
     )
 
     scrape.download(
         "Shazam Global Top 200 Genres / Pop",
         "https://www.shazam.com/charts/genre/world/pop",
-        f"./download/Shazam Top 200 Pop {formatted_date}.csv",
+        f"/tmp/Shazam Top 200 Pop {formatted_date}.csv",
     )
 
     scrape.download(
         "Shazam Global Top 100 Genres / ALT",
         "https://www.shazam.com/charts/genre/world/alternative",
-        f"./download/Shazam Top 100 Alternative {formatted_date}.csv",
+        f"/tmp/Shazam Top 100 Alternative {formatted_date}.csv",
     )
 
     scrape.download(
         "Shazam Global Top 100 Genres / R&B",
         "https://www.shazam.com/charts/genre/world/randb-soul",
-        f"./download/Shazam Top 100 R&B_Soul {formatted_date}.csv",
+        f"/tmp/Shazam Top 100 R&B_Soul {formatted_date}.csv",
     )
 
     scrape.download(
         "Shazam Global Top 100 Genres / Singer Songwriter",
         "https://www.shazam.com/charts/genre/world/singer-songwriter",
-        f"./download/Shazam Top 50 Singer_Songwriter {formatted_date}.csv",
+        f"/tmp/Shazam Top 50 Singer_Songwriter {formatted_date}.csv",
     )
 
     scrape.download(
         "Shazam Global Top 100 Genres / Country",
         "https://www.shazam.com/charts/genre/world/country",
-        f"./download/Shazam Top 100 Country {formatted_date}.csv",
+        f"/tmp/Shazam Top 100 Country {formatted_date}.csv",
     )
 
     scrape.download(
         "Shazam Top 200 / Global",
         "https://www.shazam.com/charts/top-200/world",
-        f"/Users/al/Desktop/L2TK.nosync/shazam_cities/csv/Shazam Top 200 Global Chart - The most Shazamed tracks in the world {formatted_date}.csv",
+        f"/tmp/Shazam Top 200 Global Chart - The most Shazamed tracks in the world {formatted_date}.csv",
     )
 
     scrape.download(
         "Shazam Top 200 / US",
         "https://www.shazam.com/charts/top-200/united-states",
-        f"/Users/al/Desktop/L2TK.nosync/shazam_cities/csv/Shazam Top 200 United States Chart {formatted_date}.csv",
+        f"/tmp/Shazam Top 200 United States Chart {formatted_date}.csv",
     )
 
     scrape.download(
         "Shazam Top 200 / UK",
         "https://www.shazam.com/charts/top-200/united-kingdom",
-        f"/Users/al/Desktop/L2TK.nosync/shazam_cities/csv/Shazam Top 200 United Kingdom Chart {formatted_date}.csv",
+        f"/tmp/Shazam Top 200 United Kingdom Chart {formatted_date}.csv",
     )
 
     scrape.download(
         "Shazam Top 200 / CA",
         "https://www.shazam.com/charts/top-200/canada",
-        f"/Users/al/Desktop/L2TK.nosync/shazam_cities/csv/Shazam Top 200 Canada Chart {formatted_date}.csv",
+        f"/tmp/Shazam Top 200 Canada Chart {formatted_date}.csv",
     )
     scrape.download(
         "Shazam US Top 100 Genres / Hip-Hop",
         "https://www.shazam.com/charts/genre/united-states/hip-hop-rap",
-        f"/Users/al/Desktop/L2TK.nosync/shazam_cities/csv/Shazam Top 100 Hip-Hop_Rap {formatted_date}.csv",
+        f"/tmp/Shazam Top 100 Hip-Hop_Rap {formatted_date}.csv",
     )
 
     scrape.download(
         "Shazam US Top 100 Genres / Pop",
         "https://www.shazam.com/charts/genre/united-states/pop",
-        f"/Users/al/Desktop/L2TK.nosync/shazam_cities/csv/Shazam Top 100 Pop {formatted_date}.csv",
+        f"/tmp/Shazam Top 100 Pop {formatted_date}.csv",
     )
 
     scrape.download(
         "Shazam US Top 100 Genres / Dance",
         "https://www.shazam.com/charts/genre/united-states/dance",
-        f"/Users/al/Desktop/L2TK.nosync/shazam_cities/csv/Shazam Top 100 Dance {formatted_date}.csv",
+        f"/tmp/Shazam Top 100 Dance {formatted_date}.csv",
     )
 
     scrape.download(
         "Shazam US Top 100 Genres / Country",
         "https://www.shazam.com/charts/genre/united-states/country",
-        f"/Users/al/Desktop/L2TK.nosync/shazam_cities/csv/Shazam Top 100 Country {formatted_date}.csv",
+        f"/tmp/Shazam Top 100 Country {formatted_date}.csv",
     )
 
     scrape.driver.quit()
