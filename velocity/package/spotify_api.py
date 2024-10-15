@@ -125,7 +125,7 @@ class SpotifyAPI(object):
             for artist in resp.get("artists", {}).get("items", []):
                 if (
                     artist_name.lower() == artist["name"].lower()
-                    and artist["popularity"] > 15
+                    and artist["popularity"] > 5
                 ):
                     artist_id = artist["id"]
                     albums_endpoint = f"https://api.spotify.com/v1/artists/{artist_id}/albums?include_groups=album,single"
@@ -219,10 +219,7 @@ class SpotifyAPI(object):
                 )
 
             for artist in resp.get("artists", {}).get("items", []):
-                if (
-                    artist_name.lower() == artist["name"].lower()
-                    and artist["popularity"] > 15
-                ):
+                if artist_name.lower() == artist["name"].lower():
                     artist_id = artist["id"]
                     endpoint = f"https://api.spotify.com/v1/artists/{artist_id}/albums?include_groups=album,single"
 

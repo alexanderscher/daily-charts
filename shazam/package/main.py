@@ -40,6 +40,7 @@ class Scrape:
         self.l2tk_chart = []
         self.other = []
         self.prospect_list = []
+        self.already_checked = []
         self.driver = driver
         self.pub_songs = db.get_pub_songs()
         self.pub_artists = db.get_pub_artists()
@@ -156,8 +157,27 @@ class Scrape:
                 a = artist.split(" & ")
                 artist = a[0]
 
-            if unsigned == "UNSIGNED":
+            if artist in self.already_checked:
+                print("already_checked", artist)
+                continue
 
+            if movement != "New" and unsigned != "UNSIGNED":
+                self.us.append(
+                    (
+                        chart,
+                        position,
+                        artist,
+                        song,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                    )
+                )
+                continue
+
+            if unsigned == "UNSIGNED" and movement != "New":
                 self.us.append(
                     (
                         chart,
@@ -171,6 +191,7 @@ class Scrape:
                         movement,
                     )
                 )
+
                 continue
 
             if movement == "New":
@@ -181,7 +202,7 @@ class Scrape:
                 if not copyright or (
                     "2023" not in copyright[0] and "2024" not in copyright[0]
                 ):
-
+                    print(f"{position} (OLD):", artist, "-", song)
                     self.us.append(
                         (
                             chart,
@@ -190,11 +211,12 @@ class Scrape:
                             song,
                             None,
                             None,
-                            movement,
                             None,
-                            copyright[0] if copyright else None,
+                            None,
+                            None,
                         )
                     )
+
                     continue
 
                 if copyright:
@@ -206,7 +228,6 @@ class Scrape:
                     )
 
                     if not matched_labels:
-
                         self.us.append(
                             (
                                 chart,
@@ -221,7 +242,7 @@ class Scrape:
                             )
                         )
                     else:
-
+                        self.already_checked.append(artist)
                         self.us.append(
                             (
                                 chart,
@@ -231,12 +252,16 @@ class Scrape:
                                 None,
                                 None,
                                 None,
+                                None,
+                                None,
+                                copyright[1],
                                 copyright[0],
-                                movement,
                             )
                         )
 
-    def create_html(self, type, chart_name, data):
+                    print(f"{position}.", artist, song, "signed", movement)
+
+    def create_html(self, chart_name, data):
         conor = os.getenv("CONOR")
         ari = os.getenv("ARI")
         laura = os.getenv("LAURA")
@@ -364,8 +389,7 @@ def send_email_ses(subject, body) -> None:
 
 def download_shazam(scrape):
     today = datetime.now(pacific_tz)
-    # formatted_date = today.strftime("%d-%m-%Y")
-    formatted_date = "15-10-2024"
+    formatted_date = today.strftime("%d-%m-%Y")
     scrape.download(
         "Shazam Global Top 200 Genres / Hip-Hop",
         "https://www.shazam.com/charts/genre/world/hip-hop-rap",
@@ -453,10 +477,9 @@ def download_shazam(scrape):
 
 
 def scrape_all():
-    download_dir = os.path.abspath("./download")
 
     prefs = {
-        "download.default_directory": download_dir,
+        "download.default_directory": "/tmp",
     }
 
     options = webdriver.ChromeOptions()
@@ -482,8 +505,11 @@ def scrape_all():
     # local
     # from selenium.webdriver.chrome.service import Service
     # from webdriver_manager.chrome import ChromeDriverManager
-
     # service = Service(ChromeDriverManager().install())
+    # download_dir = os.path.abspath("../download")
+    # prefs = {
+    #     "download.default_directory": download_dir,
+    # }
 
     options.add_experimental_option("prefs", prefs)
     driver = webdriver.Chrome(service=service, options=options)
@@ -538,7 +564,7 @@ def scrape_all():
     )
 
     db.insert_shazam_charts(unsigned_charts)
-    body = scrape.create_html("chart", "Shazam Chart Report", unsigned_charts)
+    body = scrape.create_html("Shazam Chart Report", unsigned_charts)
 
     subject = f'Shazam Chart Report - {datetime.now(pacific_tz).strftime("%m/%d/%y")}'
     send_email_ses(subject, body)
