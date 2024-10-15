@@ -67,3 +67,21 @@ resource "aws_iam_role_policy" "charts_scheduler_policy" {
     }]
   })
 }
+
+resource "aws_iam_role_policy" "allow_lambda_access_to_secrets" {
+  name = "AllowLambdaAccessToSecrets"
+  role = aws_iam_role.charts_role.name # Ensure this role is your Lambda role
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue"
+        ]
+        Resource = aws_secretsmanager_secret.google_private_key.arn
+      }
+    ]
+  })
+}

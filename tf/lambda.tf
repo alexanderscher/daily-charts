@@ -115,12 +115,19 @@ resource "aws_lambda_function" "no_track" {
   environment {
     variables = {
       GOOGLE_CLIENT_EMAIL = var.google_client_email
-      GOOGLE_PRIVATE_KEY  = var.google_private_key
       GOOGLE_PROJECT_ID   = var.google_project_id
-
     }
   }
-
+}
+resource "aws_secretsmanager_secret" "google_private_key" {
+  name        = "google_private_key"
+  description = "Google private key for Lambda"
 }
 
+resource "aws_secretsmanager_secret_version" "google_private_key_version" {
+  secret_id     = aws_secretsmanager_secret.google_private_key.id
+  secret_string = <<EOF
+${var.google_private_key}
+EOF
+}
 

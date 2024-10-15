@@ -1,6 +1,6 @@
 FROM public.ecr.aws/lambda/python@sha256:a05b85bc8919d6c7db4f438a616bbb1ea8af5804e3f0a9d59acc38b624e9b711
 RUN dnf install -y postgresql-devel gcc python3-devel
-RUN pip install SQLAlchemy psycopg2 gspread oauth2client
+RUN pip install SQLAlchemy psycopg2 gspread oauth2client boto3
 COPY package/ /var/task/
 RUN chmod 755 /var/task/main.py
 CMD [ "main.lambda_handler" ]
