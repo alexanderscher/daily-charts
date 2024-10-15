@@ -60,35 +60,33 @@ jobs:
           google_client_email = "${{ secrets.GOOGLE_CLIENT_EMAIL }}"
           google_project_id = "${{ secrets.GOOGLE_PROJECT_ID }}"
           EOF
-      - name: Verify terraform-secrets.tfvars creation
-        run: ls -la
 
       # Step 4: Set up Docker Buildx (needed for multi-platform builds)
-      # - name: Set up Docker Buildx
-      #   uses: docker/setup-buildx-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-      # # Step 5: Log in to Amazon ECR to push the image
-      # - name: Log in to Amazon ECR
-      #   run: |
-      #     aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 742736545134.dkr.ecr.us-east-1.amazonaws.com
+      # Step 5: Log in to Amazon ECR to push the image
+      - name: Log in to Amazon ECR
+        run: |
+          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 742736545134.dkr.ecr.us-east-1.amazonaws.com
 
-      # # Step 6: Build and Push the Docker image to ECR
-      # - name: Build and Push Docker Image to ECR
-      #   run: |
-      #     docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/spotify-charts-ecr:latest --push --provenance=false ./spotify
-      #     docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/velocity-ecr:latest --push --provenance=false ./velocity
-      #     docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/apple-charts-ecr:latest --push --provenance=false ./apple
-      #     docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/shazam-charts-ecr:latest --push --provenance=false ./shazam
-      #     docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/no-track-ecr:latest --push --provenance=false ./notrack
+      # Step 6: Build and Push the Docker image to ECR
+      - name: Build and Push Docker Image to ECR
+        run: |
+          docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/spotify-charts-ecr:latest --push --provenance=false ./spotify
+          docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/velocity-ecr:latest --push --provenance=false ./velocity
+          docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/apple-charts-ecr:latest --push --provenance=false ./apple
+          docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/shazam-charts-ecr:latest --push --provenance=false ./shazam
+          docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/no-track-ecr:latest --push --provenance=false ./notrack
 
-      # # Step 7: Update the Lambda function with the new image
-      # - name: Update Lambda Function with New Image
-      #   run: |
-      #     aws lambda update-function-code --function-name spotify-charts --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/spotify-charts-ecr:latest
-      #     aws lambda update-function-code --function-name velocity --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/velocity-ecr:latest
-      #     aws lambda update-function-code --function-name apple-charts --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/apple-charts-ecr:latest
-      #     aws lambda update-function-code --function-name shazam-charts --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/shazam-charts-ecr:latest
-      #     aws lambda update-function-code --function-name no-track --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/no-track-ecr:latest
+      # Step 7: Update the Lambda function with the new image
+      - name: Update Lambda Function with New Image
+        run: |
+          aws lambda update-function-code --function-name spotify-charts --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/spotify-charts-ecr:latest
+          aws lambda update-function-code --function-name velocity --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/velocity-ecr:latest
+          aws lambda update-function-code --function-name apple-charts --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/apple-charts-ecr:latest
+          aws lambda update-function-code --function-name shazam-charts --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/shazam-charts-ecr:latest
+          aws lambda update-function-code --function-name no-track --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/no-track-ecr:latest
 
       # Step 8: Install Terraform
       - name: Install Terraform
