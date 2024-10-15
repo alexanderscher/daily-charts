@@ -59,7 +59,7 @@ class Scrape:
         ).get_attribute("href")
 
         self.driver.get(button)
-        time.sleep(2)
+        time.sleep(5)
 
         data = pd.read_csv(path, skiprows=2, on_bad_lines="skip")
 
