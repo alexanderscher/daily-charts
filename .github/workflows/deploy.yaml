@@ -117,7 +117,7 @@ jobs:
           --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/shazam-charts-ecr:latest
 
           aws lambda update-function-code \
-          --function-name shazam-charts \
+          --function-name no-track \
           --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/no-track-ecr:latest
 
       # Step 8: Install Terraform
