@@ -10,6 +10,9 @@ import datetime
 from tempfile import mkdtemp
 from datetime import datetime
 import re
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 pd.set_option("display.max_rows", None)
 pd.set_option("display.max_columns", None)
@@ -49,10 +52,12 @@ class Scrape:
         time.sleep(5)
         non_latin_pattern = r"[\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\u0400-\u04FF]"
 
-        button = self.driver.find_element(
-            By.CLASS_NAME, "Header_downloadCSVIcon__48xi4"
+        download_icon = WebDriverWait(self.driver, 10).until(
+            EC.element_to_be_clickable(
+                (By.CSS_SELECTOR, ".Header_downloadCSVIcon__48xi4")
+            )
         )
-        button.click()
+        download_icon.click()
 
         time.sleep(5)
         print(path)
@@ -360,7 +365,8 @@ def send_email_ses(subject, body) -> None:
 
 def download_shazam(scrape):
     today = datetime.now()
-    formatted_date = today.strftime("%d-%m-%Y")
+    # formatted_date = today.strftime("%d-%m-%Y")
+    formatted_date = "15-10-2024"
     scrape.download(
         "Shazam Global Top 200 Genres / Hip-Hop",
         "https://www.shazam.com/charts/genre/world/hip-hop-rap",
@@ -456,26 +462,26 @@ def scrape_all():
 
     options = webdriver.ChromeOptions()
     options.add_experimental_option("prefs", prefs)
-    options.binary_location = "/opt/chrome/chrome"
+    # options.binary_location = "/opt/chrome/chrome"
     options.add_argument("--headless=new")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--window-size=1963x1696")
-    options.add_argument("--single-process")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-dev-tools")
-    options.add_argument("--no-zygote")
-    options.add_argument(f"--user-data-dir={mkdtemp()}")
-    options.add_argument(f"--data-path={mkdtemp()}")
-    options.add_argument(f"--disk-cache-dir={mkdtemp()}")
-    options.add_argument("--remote-debugging-port=9222")
-    service = webdriver.ChromeService("/opt/chromedriver")
+    # options.add_argument("--no-sandbox")
+    # options.add_argument("--disable-gpu")
+    # options.add_argument("--window-size=1963x1696")
+    # options.add_argument("--single-process")
+    # options.add_argument("--disable-dev-shm-usage")
+    # options.add_argument("--disable-dev-tools")
+    # options.add_argument("--no-zygote")
+    # options.add_argument(f"--user-data-dir={mkdtemp()}")
+    # options.add_argument(f"--data-path={mkdtemp()}")
+    # options.add_argument(f"--disk-cache-dir={mkdtemp()}")
+    # options.add_argument("--remote-debugging-port=9222")
+    # service = webdriver.ChromeService("/opt/chromedriver")
 
     # local
-    # from selenium.webdriver.chrome.service import Service
-    # from webdriver_manager.chrome import ChromeDriverManager
+    from selenium.webdriver.chrome.service import Service
+    from webdriver_manager.chrome import ChromeDriverManager
 
-    # service = Service(ChromeDriverManager().install())
+    service = Service(ChromeDriverManager().install())
 
     options.add_experimental_option("prefs", prefs)
     driver = webdriver.Chrome(service=service, options=options)
