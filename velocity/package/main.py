@@ -4,6 +4,8 @@ import pandas as pd
 import os
 import boto3
 import re
+from pytz import timezone
+
 
 pd.set_option("display.max_rows", None)
 pd.set_option("display.max_columns", None)
@@ -27,6 +29,8 @@ majorlabels = db.get_major_labels()
 signed_artists = db.get_signed_artists()
 df = []
 other = []
+
+pacific_tz = timezone("America/Los_Angeles")
 
 
 def smart_partial_match(label, text):
@@ -82,7 +86,7 @@ def create_html():
         </head>
         <body>
         <p>
-            Velocity Report - {datetime.now().strftime("%m/%d/%y")}
+            Velocity Report - {datetime.now(pacific_tz).strftime("%m/%d/%y")}
             <br> {conor}, {ari}, {laura}, {micah}
         </p>
     """
@@ -141,7 +145,7 @@ def send_email_ses(subject, body) -> None:
 
 def scrape_all():
     body = create_html()
-    subject = f'Velocity  Report - {datetime.now().strftime("%m/%d/%y")}'
+    subject = f'Velocity  Report - {datetime.now(pacific_tz).strftime("%m/%d/%y")}'
     send_email_ses(subject, body)
 
 

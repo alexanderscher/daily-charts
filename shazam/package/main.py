@@ -4,6 +4,7 @@ from selenium.common.exceptions import NoSuchElementException
 import time
 from botocore.exceptions import ClientError
 import pandas as pd
+from pytz import timezone
 import os
 import boto3
 import datetime
@@ -29,6 +30,8 @@ USER_ID = os.getenv("SPOTIFY_USER_ID")
 CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
 
 db = FetchDB()
+
+pacific_tz = timezone("America/Los_Angeles")
 
 
 class Scrape:
@@ -257,7 +260,7 @@ class Scrape:
         </head>
         <body>
         <p>
-            {chart_name} - {datetime.now().strftime("%m/%d/%y")}
+            {chart_name} - {datetime.now(pacific_tz).strftime("%m/%d/%y")}
             <br> {conor}, {ari}, {laura}, {micah}
         </p>
         """
@@ -364,7 +367,7 @@ def send_email_ses(subject, body) -> None:
 
 
 def download_shazam(scrape):
-    today = datetime.now()
+    today = datetime.now(pacific_tz)
     # formatted_date = today.strftime("%d-%m-%Y")
     formatted_date = "15-10-2024"
     scrape.download(
@@ -537,7 +540,8 @@ def scrape_all():
 
     db.insert_shazam_charts(unsigned_charts)
     body = scrape.create_html("chart", "Shazam Chart Report", unsigned_charts)
-    subject = f'Shazam Chart Report - {datetime.now().strftime("%m/%d/%y")}'
+
+    subject = f'Shazam Chart Report - {datetime.now(pacific_tz).strftime("%m/%d/%y")}'
     send_email_ses(subject, body)
 
 

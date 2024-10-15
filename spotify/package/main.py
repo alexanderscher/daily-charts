@@ -5,8 +5,9 @@ import time
 from botocore.exceptions import ClientError
 import pandas as pd
 import os
+from pytz import timezone
 import boto3
-import datetime
+from datetime import datetime
 from tempfile import mkdtemp
 import re
 
@@ -30,6 +31,8 @@ SPOTIFY_CHART_USERNAME = os.getenv("SPOTIFY_CHART_USERNAME")
 SPOTIFY_CHART_PASSWORD = os.getenv("SPOTIFY_CHART_PASSWORD")
 
 db = FetchDB()
+
+pacific_tz = timezone("America/Los_Angeles")
 
 
 class Scrape:
@@ -380,7 +383,7 @@ class Scrape:
         </head>
         <body>
         <p>
-            {chart_name} - {datetime.datetime.now().strftime("%m/%d/%y")}
+            {chart_name} - {datetime.now(pacific_tz).strftime("%m/%d/%y")}
             <br> {conor}, {ari}, {laura}, {micah}
         </p>
         """
@@ -586,11 +589,11 @@ def scrape_all():
     scrape.driver.quit()
     scrape.chart_search()
     body = scrape.create_html("roster", "Spotify Roster Report")
-    subject = f'Spotify Roster Report - {datetime.datetime.now().strftime("%m/%d/%y")}'
+    subject = f'Spotify Roster Report - {datetime.now(pacific_tz).strftime("%m/%d/%y")}'
     send_email_ses(subject, body)
 
     body = scrape.create_html("chart", "Spotify Chart Report")
-    subject = f'Spotify Chart Report - {datetime.datetime.now().strftime("%m/%d/%y")}'
+    subject = f'Spotify Chart Report - {datetime.now(pacific_tz).strftime("%m/%d/%y")}'
     send_email_ses(subject, body)
 
 

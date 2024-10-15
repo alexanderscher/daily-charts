@@ -3,6 +3,8 @@ from .db_conn import (
 )
 from datetime import datetime, timedelta
 import pandas as pd
+from pytz import timezone
+
 from sqlalchemy import exists
 from datetime import datetime
 from .models import SignedArtists
@@ -118,7 +120,9 @@ class FetchDB:
 
     def insert_apple_charts(self, data):
         session = SessionLocal()
-        current_date = datetime.now().date()
+
+        pacific_tz = timezone("America/Los_Angeles")
+        current_date = datetime.now(pacific_tz).date()
 
         try:
             date_exists = session.query(
@@ -172,13 +176,12 @@ class FetchDB:
         session = SessionLocal()
 
         try:
-            # Get today's date as a string
-            today_str = datetime.now().strftime("%Y-%m-%d")
+            pacific_tz = timezone("America/Los_Angeles")
+            today_str = datetime.now(pacific_tz).strftime("%Y-%m-%d")
 
-            # Get the most recent date that is not today
             recent_date = (
                 session.query(AppleCharts.date)
-                .filter(AppleCharts.date != today_str)  # Exclude today's date
+                .filter(AppleCharts.date != today_str)
                 .order_by(AppleCharts.date.desc())
                 .first()
             )
@@ -187,7 +190,6 @@ class FetchDB:
                 most_recent_date_str = recent_date[0].strftime("%Y-%m-%d")
                 print(most_recent_date_str)
 
-                # Fetch all charts for the most recent date
                 charts = (
                     session.query(AppleCharts)
                     .filter(AppleCharts.date == most_recent_date_str)

@@ -7,6 +7,7 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium import webdriver
 from selenium.webdriver.chrome.webdriver import WebDriver
 import os
+from pytz import timezone
 from tempfile import mkdtemp
 from selenium.webdriver.common.by import By
 import boto3
@@ -29,6 +30,8 @@ from check import check_prod_albums
 
 
 db = FetchDB()
+
+pacific_tz = timezone("America/Los_Angeles")
 
 CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID_ALENA")
 USER_ID = os.getenv("SPOTIFY_USER_ID_ALENA")
@@ -737,7 +740,7 @@ def create_html(type, df, report_name):
         </head>
         <body>
         <p>
-            {report_name} - {datetime.now().strftime("%m/%d/%y")}
+            {report_name} - {datetime.now(pacific_tz).strftime("%m/%d/%y")}
             <br> {conor}, {ari}, {laura}, {micah}
         </p>
         """
@@ -868,11 +871,11 @@ def update_apple_charts():
     df = scrape_all()
     db.insert_apple_charts(df)
     body = create_html("roster", df, "Apple Roster Report")
-    subject = f'Apple Roster Report - {datetime.now().strftime("%m/%d/%y")}'
+    subject = f'Apple Roster Report - {datetime.now(pacific_tz).strftime("%m/%d/%y")}'
     send_email_ses(subject, body)
 
     body = create_html("chart", df, "Apple Chart Report")
-    subject = f'Apple Chart Report - {datetime.now().strftime("%m/%d/%y")}'
+    subject = f'Apple Chart Report - {datetime.now(pacific_tz).strftime("%m/%d/%y")}'
     send_email_ses(subject, body)
 
 

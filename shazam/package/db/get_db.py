@@ -4,6 +4,8 @@ from .db_conn import (
 from datetime import datetime
 from sqlalchemy import exists
 import pandas as pd
+from pytz import timezone
+
 
 from .models import SignedArtists
 from .models import MajorLabels
@@ -118,7 +120,8 @@ class FetchDB:
 
     def insert_shazam_charts(self, data):
         session = SessionLocal()
-        current_date = datetime.now().date()
+        pacific_tz = timezone("America/Los_Angeles")
+        current_date = datetime.now(pacific_tz).date()
 
         try:
             date_exists = session.query(
@@ -173,7 +176,8 @@ class FetchDB:
         session = SessionLocal()
 
         try:
-            today_str = datetime.now().strftime("%Y-%m-%d")
+            pacific_tz = timezone("America/Los_Angeles")
+            today_str = datetime.now(pacific_tz).strftime("%Y-%m-%d")
 
             recent_date = (
                 session.query(ShazamCharts.date)

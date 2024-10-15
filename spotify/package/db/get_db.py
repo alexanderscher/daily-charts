@@ -1,6 +1,8 @@
 from .db_conn import (
     SessionLocal,
 )
+from pytz import timezone
+
 from .models import SignedArtists
 from .models import MajorLabels
 from .models import RosterArtists
@@ -117,7 +119,8 @@ class FetchDB:
 
     def insert_spotify_charts(self, data):
         session = SessionLocal()
-        current_date = datetime.now().date()
+        pacific_tz = timezone("America/Los_Angeles")
+        current_date = datetime.now(pacific_tz).date()
 
         try:
             date_exists = session.query(
@@ -178,13 +181,12 @@ class FetchDB:
         session = SessionLocal()
 
         try:
-            # Get today's date as a string
-            today_str = datetime.now().strftime("%Y-%m-%d")
+            pacific_tz = timezone("America/Los_Angeles")
+            today_str = datetime.now(pacific_tz).strftime("%Y-%m-%d")
 
-            # Get the most recent date that is not today
             recent_date = (
                 session.query(SpotifyCharts.date)
-                .filter(SpotifyCharts.date != today_str)  # Exclude today's date
+                .filter(SpotifyCharts.date != today_str)
                 .order_by(SpotifyCharts.date.desc())
                 .first()
             )
@@ -193,7 +195,6 @@ class FetchDB:
                 most_recent_date_str = recent_date[0].strftime("%Y-%m-%d")
                 print(most_recent_date_str)
 
-                # Fetch all charts for the most recent date
                 charts = (
                     session.query(SpotifyCharts)
                     .filter(SpotifyCharts.date == most_recent_date_str)
