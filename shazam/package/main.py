@@ -170,8 +170,8 @@ class Scrape:
                         song,
                         None,
                         None,
-                        None,
-                        None,
+                        link,
+                        label,
                         None,
                     )
                 )
@@ -199,27 +199,10 @@ class Scrape:
                     artist.lower(), song, "shazam"
                 )
 
-                if not copyright or (
-                    "2023" not in copyright[0] and "2024" not in copyright[0]
-                ):
-                    print(f"{position} (OLD):", artist, "-", song)
-                    self.us.append(
-                        (
-                            chart,
-                            position,
-                            artist,
-                            song,
-                            None,
-                            None,
-                            None,
-                            None,
-                            None,
-                        )
-                    )
-
-                    continue
-
                 if copyright:
+                    year_pattern = r"202[0-4]"
+                    if not re.search(year_pattern, copyright):
+                        continue
                     matched_labels = list(
                         filter(
                             lambda x: smart_partial_match(x, copyright[0].lower()),
