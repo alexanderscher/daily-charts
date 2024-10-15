@@ -135,7 +135,7 @@ class Scrape:
                         print(f"Non-latin artist: {a}")
                         pass
                     elif re.search(non_latin_pattern, s):
-                        print(f"Non-latin artist: {a}")
+                        print(f"Non-latin song: {s}")
                         pass
                     else:
                         self.df.append((name, idx, a, s, None, None, None))
@@ -208,7 +208,7 @@ class Scrape:
 
                 if copyright:
                     year_pattern = r"202[0-4]"
-                    if not re.search(year_pattern, copyright):
+                    if not re.search(year_pattern, copyright[0]):
                         continue
                     matched_labels = list(
                         filter(

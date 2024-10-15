@@ -116,6 +116,7 @@ resource "aws_lambda_function" "no_track" {
     variables = {
       GOOGLE_CLIENT_EMAIL = var.google_client_email
       GOOGLE_PROJECT_ID   = var.google_project_id
+      DB_PASSWORD         = var.db_password
     }
   }
 }
