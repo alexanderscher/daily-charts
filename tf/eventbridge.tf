@@ -70,3 +70,19 @@ resource "aws_scheduler_schedule" "shazam_schedule" {
 }
 
 
+resource "aws_scheduler_schedule" "no-track_schedule" {
+  name       = "no-track-schedule"
+  group_name = "default"
+
+  flexible_time_window {
+    mode = "OFF"
+  }
+
+  schedule_expression          = "cron(25 17 15 10 ? 2024)"
+  schedule_expression_timezone = "America/Los_Angeles"
+
+  target {
+    arn      = "arn:aws:lambda:us-east-1:742736545134:function:no-track"
+    role_arn = aws_iam_role.charts_scheduler_role.arn
+  }
+}
