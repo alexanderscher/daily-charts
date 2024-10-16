@@ -2,12 +2,20 @@ from sqlalchemy import Column, Integer, String, Date
 from .db_conn import Base
 
 
-class ApplePeaks(Base):
-    __tablename__ = "apple_peaks"
+class GeniusCharts(Base):
+    __tablename__ = "genius_charts"
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String)
-    streams = Column(Integer)
-    peak_date = Column(Date)
+    chart = Column(String)
+    position = Column(Integer)
+    artist = Column(String)
+    song = Column(String)
+    unsigned = Column(String)
+    l2tk = Column(String)
+    views = Column(String)
+    movement = Column(String)
+    link = Column(String)
+    label = Column(String)
+    date = Column(Date)
 
 
 class MajorLabels(Base):
@@ -34,15 +42,6 @@ class SignedArtists(Base):
     __tablename__ = "signed_artists"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
-
-
-class SpotifyPeaks(Base):
-    __tablename__ = "spotify_peaks"
-
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String)
-    streams = Column(Integer)
-    peak_date = Column(Date)
 
 
 class Prospect(Base):
