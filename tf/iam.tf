@@ -63,7 +63,7 @@ resource "aws_iam_role_policy" "charts_scheduler_policy" {
     Statement = [{
       Effect   = "Allow",
       Action   = "lambda:InvokeFunction",
-      Resource = "arn:aws:lambda:us-east-1:742736545134:function:spotify-charts"
+      Resource = "arn:aws:lambda:us-east-1:742736545134:function:*"
     }]
   })
 }

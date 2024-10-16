@@ -316,7 +316,7 @@ class Scrape:
             if unsigned == "UNSIGNED":
                 if movement.startswith("-"):
                     color = "red"
-                elif movement == "NEW":
+                elif movement == "New":
                     color = "yellow"
                 elif movement == "0":
                     color = "black"

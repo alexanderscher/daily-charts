@@ -7,7 +7,7 @@ resource "aws_scheduler_schedule" "spotify_charts_schedule" {
     mode = "OFF"
   }
 
-  schedule_expression          = "cron(25 17 15 10 ? 2024)"
+  schedule_expression          = "cron(46 17 15 10 ? 2024)"
   schedule_expression_timezone = "America/Los_Angeles"
 
   target {
@@ -24,7 +24,7 @@ resource "aws_scheduler_schedule" "velocity_schedule" {
     mode = "OFF"
   }
 
-  schedule_expression          = "cron(25 17 15 10 ? 2024)"
+  schedule_expression          = "cron(0 7 * * ? *)"
   schedule_expression_timezone = "America/Los_Angeles"
 
   target {
@@ -42,7 +42,7 @@ resource "aws_scheduler_schedule" "apple_schedule" {
     mode = "OFF"
   }
 
-  schedule_expression          = "cron(25 17 15 10 ? 2024)"
+  schedule_expression          = "cron(0 7 * * ? *)"
   schedule_expression_timezone = "America/Los_Angeles"
 
   target {
@@ -60,7 +60,7 @@ resource "aws_scheduler_schedule" "shazam_schedule" {
     mode = "OFF"
   }
 
-  schedule_expression          = "cron(25 17 15 10 ? 2024)"
+  schedule_expression          = "cron(0 7 * * ? *)"
   schedule_expression_timezone = "America/Los_Angeles"
 
   target {
@@ -78,7 +78,7 @@ resource "aws_scheduler_schedule" "no_track_schedule" {
     mode = "OFF"
   }
 
-  schedule_expression          = "cron(25 17 15 10 ? 2024)"
+  schedule_expression          = "cron(0 7 * * ? *)"
   schedule_expression_timezone = "America/Los_Angeles"
 
   target {
