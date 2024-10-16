@@ -42,14 +42,16 @@ def smart_partial_match(label, text):
 
 def velocity():
     client = SpotifyAPI(CLIENT_ID, USER_ID, CLIENT_SECRET)
-    artist_list = client.get_playlist_songs(
+    artist_list = []
+    artist_list += client.get_playlist_songs(
         "4iPVyRQvyAricdP1jPAjlQ",
         "Spotify Velocity US",
         signed_artists,
         majorlabels,
         smart_partial_match,
     )
-    artist_list = client.get_playlist_songs(
+
+    artist_list += client.get_playlist_songs(
         "0OW9wODqtbU4WnTNOcQASd",
         "Spotify Velocity Global",
         signed_artists,
