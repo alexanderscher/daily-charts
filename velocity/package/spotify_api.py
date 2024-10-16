@@ -4,9 +4,6 @@ import base64
 from urllib.parse import urlencode
 import time
 import re
-from pytz import timezone
-
-pacific_tz = timezone("America/Los_Angeles")
 
 
 class SpotifyAPI(object):
@@ -368,7 +365,7 @@ class SpotifyAPI(object):
 
                 dt_format = "%Y-%m-%dT%H:%M:%SZ"
                 added_at = datetime.strptime(date, dt_format)
-                time_frame = datetime.now(pacific_tz) - timedelta(days=1)
+                time_frame = datetime.now() - timedelta(days=1)
 
                 if added_at >= time_frame:
                     if not list(
