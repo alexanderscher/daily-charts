@@ -396,6 +396,7 @@ class SpotifyAPI(object):
                                 )
                                 if not matched_labels:
                                     print(artist_name, copyright)
+                                    print(added_at, time_frame)
 
                                     self.velocity_df.append(
                                         (
