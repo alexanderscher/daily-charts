@@ -43,21 +43,31 @@ def smart_partial_match(label, text):
 def velocity():
     client = SpotifyAPI(CLIENT_ID, USER_ID, CLIENT_SECRET)
     artist_list = []
-    artist_list += client.get_playlist_songs(
+
+    # First playlist
+    artist_list_us = client.get_playlist_songs(
         "4iPVyRQvyAricdP1jPAjlQ",
         "Spotify Velocity US",
         signed_artists,
         majorlabels,
         smart_partial_match,
     )
+    print(f"US Playlist Length: {len(artist_list_us)}")
+    artist_list += artist_list_us
 
-    artist_list += client.get_playlist_songs(
+    # Second playlist
+    artist_list_global = client.get_playlist_songs(
         "0OW9wODqtbU4WnTNOcQASd",
         "Spotify Velocity Global",
         signed_artists,
         majorlabels,
         smart_partial_match,
     )
+    print(f"Global Playlist Length: {len(artist_list_global)}")
+    artist_list += artist_list_global
+
+    # Log total number of entries
+    print(f"Total Artists in List: {len(artist_list)}")
 
     data = pd.DataFrame(
         artist_list, columns=["chart", "artist", "song", "link", "label"]

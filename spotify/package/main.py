@@ -239,12 +239,12 @@ class Scrape:
                         song,
                         None,
                         None,
+                        movement,
                         None,
                         None,
                         None,
                         None,
-                        None,
-                        None,
+                        date,
                     )
                 )
                 continue
@@ -385,6 +385,7 @@ class Scrape:
                 "Date",
             ],
         )
+        print(final_df)
         db.insert_spotify_charts(final_df)
 
         html_body = f"""
