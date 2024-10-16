@@ -65,6 +65,15 @@ jobs:
             echo "No images to delete."
           fi
 
+          IMAGES=$(aws ecr list-images --repository-name genius-charts-ecr --query 'imageIds[*]' --output json)
+          if [ "$IMAGES" != "[]" ]; then
+            aws ecr batch-delete-image \
+              --repository-name genius-charts-ecr \
+              --image-ids "$IMAGES"
+          else
+            echo "No images to delete."
+          fi
+
           IMAGES=$(aws ecr list-images --repository-name no-track-ecr --query 'imageIds[*]' --output json)
           if [ "$IMAGES" != "[]" ]; then
             aws ecr batch-delete-image \
@@ -101,6 +110,7 @@ jobs:
           spotify_client_id_alena = "${{ secrets.SPOTIFY_CLIENT_ID_ALENA }}"
           spotify_client_secret_alena = "${{ secrets.SPOTIFY_CLIENT_SECRET_ALENA }}"
           spotify_user_id_alena = "${{ secrets.SPOTIFY_USER_ID_ALENA }}"
+          genius_access_token = "${{ secrets.GENIUS_ACCESS_TOKEN }}"
           google_private_key = <<EOF2
           ${{ secrets.GOOGLE_PRIVATE_KEY }}
           EOF2
@@ -125,6 +135,7 @@ jobs:
           docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/apple-charts-ecr:latest --push --provenance=false ./apple
           docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/shazam-charts-ecr:latest --push --provenance=false ./shazam
           docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/no-track-ecr:latest --push --provenance=false ./notrack
+          docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/genius-charts-ecr:latest --push --provenance=false ./genius
 
       # Step 7: Update the Lambda function with the new image
       - name: Update Lambda Function with New Image
@@ -133,6 +144,7 @@ jobs:
           aws lambda update-function-code --function-name velocity --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/velocity-ecr:latest
           aws lambda update-function-code --function-name apple-charts --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/apple-charts-ecr:latest
           aws lambda update-function-code --function-name shazam-charts --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/shazam-charts-ecr:latest
+          aws lambda update-function-code --function-name genius-charts --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/genius-charts-ecr:latest
           aws lambda update-function-code --function-name no-track --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/no-track-ecr:latest
 
       # Step 8: Install Terraform

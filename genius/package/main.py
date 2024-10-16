@@ -47,13 +47,13 @@ class Scrape:
         self.prospect_list = []
 
     def genius(self, name, genre):
+        time.sleep(5)
         page = 1
         index = 1
         all_items = []
 
         while True:
             try:
-                time.sleep(3)
                 response = self.genius_client.charts(
                     time_period="day",
                     chart_genre=genre,
@@ -82,57 +82,57 @@ class Scrape:
                         "Traditional Transcriptions",
                     ]:
                         continue
-                    if re.search(non_latin_pattern, artist_name):
-                        print(f"Non-latin artist: {artist_name}")
+                    elif re.search(non_latin_pattern, artist_name):
+
                         continue
                     elif re.search(non_latin_pattern, track):
-                        print(f"Non-latin song: {track}")
                         continue
-                    if " (" in artist_name:
-                        ft = artist_name.split(" (")[0]
-                        if list(
-                            filter(
-                                lambda x: (x.lower() == ft.lower()),
-                                self.signed_artists + self.roster_artists,
-                            )
-                        ):
-                            continue
-                        else:
-                            self.df.append((name, index, ft, track, views))
-
-                    elif ", " in artist_name:
-                        comma = artist_name.split(", ")[0]
-                        if list(
-                            filter(
-                                lambda x: (x.lower() == comma.lower()),
-                                self.signed_artists + self.roster_artists,
-                            )
-                        ):
-                            continue
-                        else:
-                            self.df.append((name, index, artist_name, track, views))
-
-                    elif " & " in artist_name:
-                        andpersand = artist_name.split(" & ")[0]
-                        if list(
-                            filter(
-                                lambda x: (x.lower() == andpersand.lower()),
-                                self.signed_artists + self.roster_artists,
-                            )
-                        ):
-                            continue
-                        else:
-                            self.df.append((name, index, artist_name, track, views))
-
                     else:
-                        if not list(
-                            filter(
-                                lambda x: (x.lower() == artist_name.lower()),
-                                self.signed_artists + self.roster_artists,
-                            )
-                        ):
+                        if " (" in artist_name:
+                            ft = artist_name.split(" (")[0]
+                            if list(
+                                filter(
+                                    lambda x: (x.lower() == ft.lower()),
+                                    self.signed_artists + self.roster_artists,
+                                )
+                            ):
+                                continue
+                            else:
+                                self.df.append((name, index, ft, track, views))
 
-                            self.df.append((name, index, artist_name, track, views))
+                        elif ", " in artist_name:
+                            comma = artist_name.split(", ")[0]
+                            if list(
+                                filter(
+                                    lambda x: (x.lower() == comma.lower()),
+                                    self.signed_artists + self.roster_artists,
+                                )
+                            ):
+                                continue
+                            else:
+                                self.df.append((name, index, artist_name, track, views))
+
+                        elif " & " in artist_name:
+                            andpersand = artist_name.split(" & ")[0]
+                            if list(
+                                filter(
+                                    lambda x: (x.lower() == andpersand.lower()),
+                                    self.signed_artists + self.roster_artists,
+                                )
+                            ):
+                                continue
+                            else:
+                                self.df.append((name, index, artist_name, track, views))
+
+                        else:
+                            if not list(
+                                filter(
+                                    lambda x: (x.lower() == artist_name.lower()),
+                                    self.signed_artists + self.roster_artists,
+                                )
+                            ):
+
+                                self.df.append((name, index, artist_name, track, views))
 
                     index += 1
 
@@ -278,7 +278,7 @@ class Scrape:
                             copyright[0],
                         )
                     )
-                    return
+
                 else:
                     self.already_checked.append(processed_artist)
                     self.us.append(
@@ -295,29 +295,31 @@ class Scrape:
                             copyright[0],
                         )
                     )
-                    return
 
     def chart_search(self):
         genius_data = pd.DataFrame(
             self.df, columns=["Chart", "Position", "Artist", "Song", "Views"]
         )
         data_yesterday = db.get_genius_charts()
-
         for i, r in genius_data.iterrows():
-            match = data_yesterday.loc[(data_yesterday["song"] == r["Song"])]
+            pos = int(r["Position"])
+            chart = r["Chart"]
+            match = data_yesterday.loc[
+                (data_yesterday["song"].str.lower() == r["Song"].lower())
+                & (data_yesterday["chart"].str.lower() == chart.lower())
+            ]
+
             if not match.empty:
                 genius_data.at[i, "Label"] = match["label"].iloc[0]
                 genius_data.at[i, "Link"] = match["link"].iloc[0]
                 genius_data.at[i, "Unsigned"] = match["unsigned"].iloc[0]
+                pos_y = int(match["position"].iloc[0])
 
-            pos = int(r["Position"])
-            match_chart = data_yesterday.loc[
-                (data_yesterday["song"] == r["Song"])
-                & (data_yesterday["chart"] == r["Chart"])
-            ]
-            if not match_chart.empty:
-                pos_y = match_chart["position"].iloc[0]
-                genius_data.at[i, "Movement"] = str(pos_y - pos)
+                if pos_y == pos:
+                    genius_data.at[i, "Movement"] = "0"
+                else:
+                    movement_value = pos_y - pos
+                    genius_data.at[i, "Movement"] = str(movement_value)
             else:
                 genius_data.at[i, "Movement"] = "New"
 
@@ -345,29 +347,11 @@ class Scrape:
                 unsigned,
             )
 
-    def create_html(self, chart_name):
+    def create_html(self, chart_name, data):
         conor = os.getenv("CONOR")
         ari = os.getenv("ARI")
         laura = os.getenv("LAURA")
         micah = os.getenv("MICAH")
-
-        final_df = pd.DataFrame(
-            self.us,
-            columns=[
-                "Chart",
-                "Position",
-                "Artist",
-                "Song",
-                "Unsigned",
-                "L2TK",
-                "Views",
-                "Movement",
-                "Link",
-                "Label",
-            ],
-        )
-
-        db.insert_genius_charts(final_df)
 
         html_body = f"""
         <html>
@@ -390,7 +374,7 @@ class Scrape:
 
         chart_header = None
 
-        def add_content_and_header(chart, date):
+        def add_content_and_header(chart):
             nonlocal html_body
             if self.other or self.prospect_list:
                 header_text = f"<br><br><strong style='text-decoration: underline;'>{chart.upper()}</strong><br><br>"
@@ -422,44 +406,35 @@ class Scrape:
             movement,
             link,
             label,
-        ) in final_df.itertuples(index=False):
+        ) in data.itertuples(index=False):
 
             if chart != chart_header:
                 if chart_header:
                     add_content_and_header(chart_header)
 
                 chart_header = chart
-            if type == "chart":
-                if l2tk == "L2TK":
-                    if artist.lower() in self.prospects:
-                        self.prospect_list.append(
-                            f"""
-                            {position}. {artist} - {song} ({'=' if movement == '0' else movement})<br>
-                            <span class='indent'>• Views: {views}</span><br>
-                            """
-                        )
 
-                if unsigned == "UNSIGNED":
-                    if movement.startswith("-"):
-                        color = "red"
-                    elif movement == "NEW":
-                        color = "yellow"
-                    elif movement == "0":
-                        color = "black"
-                    else:
-                        color = "green"
+            if unsigned == "UNSIGNED":
+                if movement.startswith("-"):
+                    color = "red"
+                elif movement == "NEW":
+                    color = "yellow"
+                elif movement == "0":
+                    color = "black"
+                else:
+                    color = "green"
 
-                    self.other.append(
-                        {
-                            "c": f"""
-                            {position}. {artist} - {song} <span style='color:{color};'>({movement})</span><br>
-                            <span class='indent'>• Views: {views}</span><br>
-                            <span class='indent'>• Label: {label} (UNSIGNED)</span><br>
-                            <span class='indent'>• <a href='{link}'>{link}</a></span>
-                            """,
-                            "h": True,
-                        }
-                    )
+                self.other.append(
+                    {
+                        "c": f"""
+                        {position}. {artist} - {song} <span style='color:{color};'>({movement})</span><br>
+                        <span class='indent'>• Views: {views}</span><br>
+                        <span class='indent'>• Label: {label} (UNSIGNED)</span><br>
+                        <span class='indent'>• <a href='{link}'>{link}</a></span>
+                        """,
+                        "h": True,
+                    }
+                )
 
         add_content_and_header(chart_header)
 
@@ -509,7 +484,25 @@ def scrape_all():
     scrape.genius("Genius Chart - Daily Trending Top 100: Rock", "rock")
     scrape.genius("Genius Chart - Daily Trending Top 100: Country", "country")
     scrape.chart_search()
-    body = scrape.create_html("Genius Chart Report")
+    final_df = pd.DataFrame(
+        scrape.us,
+        columns=[
+            "Chart",
+            "Position",
+            "Artist",
+            "Song",
+            "Unsigned",
+            "L2TK",
+            "Views",
+            "Movement",
+            "Link",
+            "Label",
+        ],
+    )
+    print(final_df)
+
+    db.insert_genius_charts(final_df)
+    body = scrape.create_html("Genius Chart Report", final_df)
     subject = f'Genius Chart Report - {datetime.datetime.now().strftime("%m/%d/%y")}'
     send_email_ses(subject, body)
 

@@ -654,6 +654,7 @@ def scrape_all():
     )
 
     data_yesterday = db.get_apple_charts()
+
     for i, r in apple_data.iterrows():
         pos = r["Position"]
         chart = r["Chart"]

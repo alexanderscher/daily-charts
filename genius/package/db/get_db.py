@@ -7,6 +7,10 @@ from .models import RosterArtists
 from .models import RosterSongs
 from .models import Prospect
 from db.models import GeniusCharts
+from datetime import datetime
+from pytz import timezone
+from sqlalchemy import exists
+import pandas as pd
 
 
 class FetchDB:
@@ -116,7 +120,8 @@ class FetchDB:
         session = SessionLocal()
 
         try:
-            today_str = datetime.now().strftime("%Y-%m-%d")
+            pacific_tz = timezone("America/Los_Angeles")
+            today_str = datetime.now(pacific_tz).strftime("%Y-%m-%d")
 
             recent_date = (
                 session.query(GeniusCharts.date)
@@ -169,7 +174,8 @@ class FetchDB:
 
     def insert_genius_charts(self, data):
         session = SessionLocal()
-        current_date = datetime.now().date()
+        pacific_tz = timezone("America/Los_Angeles")
+        current_date = datetime.now(pacific_tz).date()
 
         try:
             date_exists = session.query(

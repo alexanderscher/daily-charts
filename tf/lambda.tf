@@ -103,6 +103,32 @@ resource "aws_lambda_function" "shazam_charts" {
 
 }
 
+resource "aws_lambda_function" "genius_charts" {
+  function_name = "genius-charts"
+  role          = aws_iam_role.charts_role.arn
+  package_type  = "Image"
+  image_uri     = "${aws_ecr_repository.genius_charts_ecr.repository_url}:latest"
+  timeout       = 480
+  memory_size   = 2048
+
+  environment {
+    variables = {
+      SPOTIFY_CLIENT_ID_L2TK     = var.spotify_client_id_l2tk
+      SPOTIFY_CLIENT_SECRET_L2TK = var.spotify_client_secret_l2tk
+      SPOTIFY_USER_ID_L2TK       = var.spotify_user_id_l2tk
+      ALEX                       = var.alex
+      ALEX_MAIL                  = var.alex_mail
+      ARI                        = var.ari
+      LAURA                      = var.laura
+      CONOR                      = var.conor
+      MICAH                      = var.micah
+      DB_PASSWORD                = var.db_password
+      GENIUS_ACCESS_TOKEN        = var.genius_access_token
+    }
+  }
+
+}
+
 
 resource "aws_lambda_function" "no_track" {
   function_name = "no-track"

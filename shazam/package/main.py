@@ -31,6 +31,9 @@ CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
 
 db = FetchDB()
 pacific_tz = timezone("America/Los_Angeles")
+non_latin_pattern = (
+    r"[\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\u0400-\u04FF\u1100-\u11FF\uAC00-\uD7AF]"
+)
 
 
 class Scrape:
@@ -53,7 +56,6 @@ class Scrape:
     def download(self, name, url, path):
         self.driver.get(url)
         time.sleep(5)
-        non_latin_pattern = r"[\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\u0400-\u04FF]"
 
         button_url = self.driver.find_element(
             By.CLASS_NAME, "Header_responsiveView__srGi_"
@@ -75,69 +77,70 @@ class Scrape:
             s = row["Title"]
             a = row["Artist"]
             idx = row["Rank"]
-            if ", " in a:
-                comma = a.split(", ", 1)[0]
-                if list(
-                    filter(
-                        lambda x: (x.lower() == comma.lower()),
-                        self.signed_artists + self.roster_artists,
-                    )
-                ):
-                    continue
-                else:
-                    self.df.append((name, idx, a, s, None, None, None))
-                    continue
-
-            elif " & " in a:
-                andpersand = a.split(" & ")[0]
-                if list(
-                    filter(
-                        lambda x: (x.lower() == andpersand.lower()),
-                        self.signed_artists + self.roster_artists,
-                    )
-                ):
-                    continue
-                else:
-                    self.df.append((name, idx, a, s, None, None, None))
-                    continue
-            if " featuring " in a:
-                ft = a.split(" featuring ")[0]
-                if list(
-                    filter(
-                        lambda x: (x.lower() == ft.lower()),
-                        self.signed_artists + self.roster_artists,
-                    )
-                ):
-                    continue
-                else:
-                    self.df.append((name, idx, a, s, None, None, None))
-                    continue
-            elif " x " in a:
-                ex = a.split(" x ")[0]
-                if list(
-                    filter(
-                        lambda x: (x.lower() == ex.lower()),
-                        self.signed_artists + self.roster_artists,
-                    )
-                ):
-                    continue
-                else:
-                    self.df.append((name, idx, a, s, None, None, None))
-                    continue
+            if re.search(non_latin_pattern, a):
+                print(f"Non-latin artist: {a}")
+                continue
+            elif re.search(non_latin_pattern, s):
+                print(f"Non-latin song: {s}")
+                continue
             else:
-                if not list(
-                    filter(
-                        lambda x: (x.lower() == a.lower()),
-                        self.signed_artists + self.roster_artists,
-                    )
-                ):
-                    if re.search(non_latin_pattern, a):
-                        print(f"Non-latin artist: {a}")
-                        pass
-                    elif re.search(non_latin_pattern, s):
-                        print(f"Non-latin song: {s}")
-                        pass
+                if ", " in a:
+                    comma = a.split(", ", 1)[0]
+                    if list(
+                        filter(
+                            lambda x: (x.lower() == comma.lower()),
+                            self.signed_artists + self.roster_artists,
+                        )
+                    ):
+                        continue
                     else:
+                        self.df.append((name, idx, a, s, None, None, None))
+                        continue
+
+                elif " & " in a:
+                    andpersand = a.split(" & ")[0]
+                    if list(
+                        filter(
+                            lambda x: (x.lower() == andpersand.lower()),
+                            self.signed_artists + self.roster_artists,
+                        )
+                    ):
+                        continue
+                    else:
+                        self.df.append((name, idx, a, s, None, None, None))
+                        continue
+                elif " featuring " in a:
+                    ft = a.split(" featuring ")[0]
+                    if list(
+                        filter(
+                            lambda x: (x.lower() == ft.lower()),
+                            self.signed_artists + self.roster_artists,
+                        )
+                    ):
+                        continue
+                    else:
+                        self.df.append((name, idx, a, s, None, None, None))
+                        continue
+                elif " x " in a:
+                    ex = a.split(" x ")[0]
+                    if list(
+                        filter(
+                            lambda x: (x.lower() == ex.lower()),
+                            self.signed_artists + self.roster_artists,
+                        )
+                    ):
+                        continue
+                    else:
+                        self.df.append((name, idx, a, s, None, None, None))
+                        continue
+                else:
+                    if not list(
+                        filter(
+                            lambda x: (x.lower() == a.lower()),
+                            self.signed_artists + self.roster_artists,
+                        )
+                    ):
+
                         self.df.append((name, idx, a, s, None, None, None))
                         continue
 

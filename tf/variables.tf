@@ -105,3 +105,8 @@ variable "google_client_email" {
 variable "google_project_id" {
   type = string
 }
+
+variable "genius_access_token" {
+  type = string
+
+}

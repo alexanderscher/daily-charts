@@ -37,6 +37,16 @@ data "aws_ecr_image" "shazam_charts_ecr" {
   image_tag       = "latest"
 }
 
+
+resource "aws_ecr_repository" "genius_charts_ecr" {
+  name = "genius-charts-ecr"
+}
+
+data "aws_ecr_image" "genius_charts_ecr" {
+  repository_name = aws_ecr_repository.genius_charts_ecr.name
+  image_tag       = "latest"
+}
+
 resource "aws_ecr_repository" "no_track_ecr" {
   name = "no-track-ecr"
 }
@@ -45,3 +55,4 @@ data "aws_ecr_image" "no_track_ecr" {
   repository_name = aws_ecr_repository.no_track_ecr.name
   image_tag       = "latest"
 }
+
