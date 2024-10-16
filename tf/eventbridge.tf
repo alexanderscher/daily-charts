@@ -1,4 +1,6 @@
 # schedule_expression          = "cron(0 7 * * ? *)"
+#   schedule_expression          = "cron(35 18 15 10 ? 2024)"
+
 resource "aws_scheduler_schedule" "spotify_charts_schedule" {
   name       = "spotify-charts-schedule"
   group_name = "default"
@@ -7,7 +9,7 @@ resource "aws_scheduler_schedule" "spotify_charts_schedule" {
     mode = "OFF"
   }
 
-  schedule_expression          = "cron(35 18 15 10 ? 2024)"
+  schedule_expression          = "cron(0 7 * * ? *)"
   schedule_expression_timezone = "America/Los_Angeles"
 
   target {
@@ -24,7 +26,7 @@ resource "aws_scheduler_schedule" "velocity_schedule" {
     mode = "OFF"
   }
 
-  schedule_expression          = "cron(35 18 15 10 ? 2024)"
+  schedule_expression          = "cron(0 7 * * ? *)"
   schedule_expression_timezone = "America/Los_Angeles"
 
   target {
