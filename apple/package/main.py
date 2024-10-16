@@ -3,16 +3,10 @@ import jwt
 import requests
 from requests.exceptions import HTTPError
 import time
-from selenium.common.exceptions import NoSuchElementException
-from selenium import webdriver
-from selenium.webdriver.chrome.webdriver import WebDriver
 import os
 from pytz import timezone
-from tempfile import mkdtemp
-from selenium.webdriver.common.by import By
 import boto3
 from botocore.exceptions import ClientError
-from selenium.webdriver.support import expected_conditions as EC
 import pandas as pd
 import numpy as np
 
@@ -55,7 +49,6 @@ class AppleMusicAPI:
         secret_key,
         key_id,
         team_id,
-        driver: WebDriver,
         proxies=None,
         requests_session=True,
         max_retries=10,
@@ -80,7 +73,6 @@ class AppleMusicAPI:
             self._session = requests.api
         self.playlist_ids = None
         self.apple_df = []
-        self.driver = driver
         self.roster_artists = db.get_roster_artists()
         self.majorlabels = db.get_major_labels()
         self.signed_artists = db.get_signed_artists()
@@ -90,6 +82,7 @@ class AppleMusicAPI:
         self.spotify_client = SpotifyAPI(CLIENT_ID, USER_ID, CLIENT_SECRET)
         self.us = []
         self.already_checked = []
+        self.offset = 0
 
     def token_is_valid(self):
         return (
@@ -169,30 +162,29 @@ class AppleMusicAPI:
                 else:
                     raise
 
-    offset = 0
-
-    def charts(self, name, genre):
+    def tracks(self, name, genre):
         self.offset = 0
         time.sleep(1)
         i = 0
         p = 0
         while i < 10:
-            if name == "APPLE MUSIC TOP ALBUMS - ALL GENRES":
-                chart_url = f"https://api.music.apple.com/v1/catalog/us/charts?chart=most-played&offset={self.offset}&types=albums"
+            if name == "APPLE MUSIC TOP SONGS - ALL GENRES":
+                chart_url = f"https://api.music.apple.com/v1/catalog/us/charts?chart=most-played&offset={self.offset}&types=songs"
             else:
-                chart_url = f"https://api.music.apple.com/v1/catalog/us/charts?chart=most-played&offset={self.offset}&types=albums&genre={genre}"
+                chart_url = f"https://api.music.apple.com/v1/catalog/us/charts?chart=most-played&offset={self.offset}&types=songs&genre={genre}"
 
             chart = self._get(chart_url)
-            charts = chart["results"]["albums"]
+            charts = chart["results"]["songs"]
             for c in charts:
                 li = c["data"]
                 for l in li:
                     album = l["attributes"]["name"]
                     artist = l["attributes"]["artistName"]
 
-                    checked_pub = check_prod_albums(
+                    checked_pub = check_prod(
                         self.pub_albums, self.pub_artists, album, artist
                     )
+
                     artist_exists = any(
                         art.lower() in artist.lower() for art in self.roster_artists
                     )
@@ -214,6 +206,101 @@ class AppleMusicAPI:
                                 self.apple_df.append(
                                     (name, i + 1, artist, album, None, None, None, None)
                                 )
+                                print(f"{comma} not in signed")
+                                continue
+                        if " & " in artist:
+                            andpersand = artist.split(" & ")[0]
+                            second = artist.split(" & ")[1]
+                            if any(
+                                artist_name.lower()
+                                in (andpersand.lower(), second.lower())
+                                for artist_name in self.signed_artists
+                            ):
+                                continue
+                            else:
+                                self.apple_df.append(
+                                    (name, i + 1, artist, album, None, None, None, None)
+                                )
+                                print(f"{artist} not in signed")
+                                continue
+                        elif " featuring " in artist:
+                            feat = artist.split(" featuring ")[0]
+                            if list(
+                                filter(
+                                    lambda x: (x.lower() == feat.lower()),
+                                    self.signed_artists,
+                                )
+                            ):
+                                print(f"{artist} in signed")
+                                continue
+                            else:
+                                self.apple_df.append(
+                                    (name, i + 1, feat, album, None, None, None, None)
+                                )
+                                print(f"{artist} not in signed")
+                                continue
+
+                        else:
+                            if not list(
+                                filter(
+                                    lambda x: (x.lower() == artist.lower()),
+                                    self.signed_artists,
+                                )
+                            ):
+                                self.apple_df.append(
+                                    (name, p + 1, artist, album, None, None, None, None)
+                                )
+                                print(f"{artist} not in signed")
+                    p += 1
+
+            self.offset += 20
+            i += 1
+
+    def albums(self, name, genre):
+        self.offset = 0
+        time.sleep(1)
+        i = 0
+        p = 0
+        while i < 10:
+            if name == "APPLE MUSIC TOP ALBUMS - ALL GENRES":
+                chart_url = f"https://api.music.apple.com/v1/catalog/us/charts?chart=most-played&offset={self.offset}&types=albums"
+            else:
+                chart_url = f"https://api.music.apple.com/v1/catalog/us/charts?chart=most-played&offset={self.offset}&types=albums&genre={genre}"
+
+            chart = self._get(chart_url)
+            charts = chart["results"]["albums"]
+            for c in charts:
+                li = c["data"]
+                for l in li:
+                    album = l["attributes"]["name"]
+                    artist = l["attributes"]["artistName"]
+
+                    checked_pub = check_prod_albums(
+                        self.pub_albums, self.pub_artists, album, artist
+                    )
+
+                    artist_exists = any(
+                        art.lower() in artist.lower() for art in self.roster_artists
+                    )
+                    if checked_pub or artist_exists:
+                        self.apple_df.append(
+                            (name, p + 1, artist, album, None, None, None, None)
+                        )
+                    else:
+                        if ", " in artist:
+                            comma = artist.split(", ", 1)[0]
+                            if list(
+                                filter(
+                                    lambda x: (x.lower() == comma.lower()),
+                                    self.signed_artists,
+                                )
+                            ):
+                                continue
+                            else:
+                                self.apple_df.append(
+                                    (name, i + 1, artist, album, None, None, None, None)
+                                )
+                                print(f"{comma} not in signed")
                                 continue
                         if " & " in artist:
                             andpersand = artist.split(" & ")[0]
@@ -228,8 +315,9 @@ class AppleMusicAPI:
                                 self.apple_df.append(
                                     (name, i + 1, artist, album, None, None, None, None)
                                 )
+                                print(f"{artist} not in signed")
                                 continue
-                        if " featuring " in artist:
+                        elif " featuring " in artist:
                             feat = artist.split(" featuring ")[0]
                             if list(
                                 filter(
@@ -237,11 +325,13 @@ class AppleMusicAPI:
                                     self.signed_artists,
                                 )
                             ):
+                                print(f"{artist} in signed")
                                 continue
                             else:
                                 self.apple_df.append(
                                     (name, i + 1, feat, album, None, None, None, None)
                                 )
+                                print(f"{artist} not in signed")
                                 continue
 
                         else:
@@ -254,183 +344,109 @@ class AppleMusicAPI:
                                 self.apple_df.append(
                                     (name, p + 1, artist, album, None, None, None, None)
                                 )
+                                print(f"{artist} not in signed")
                     p += 1
 
             self.offset += 20
             i += 1
 
-    video_offset = 0
-
     def music_videos(self, name, genre):
-        self.video_offset = 0
-        time.sleep(1)
+        self.offset = 0
+        total_videos = 0
 
-        if name == "APPLE MUSIC TOP MUSIC VIDEOS - ALL GENRES":
-            chart_url = f"https://api.music.apple.com/v1/catalog/us/charts?chart=most-played&offset={self.video_offset}&types=music-videos"
-        else:
-            chart_url = f"https://api.music.apple.com/v1/catalog/us/charts?chart=most-played&offset={self.video_offset}&types=music-videos&genre={genre}"
+        i = 0
+        p = 0
+        while i < 10:
 
-        chart = self._get(chart_url)
-        charts = chart["results"]["music-videos"]
-        for c in charts:
-            li = c["data"]
-            for i, l in enumerate(li):
-                song = l["attributes"]["name"]
-                artist = l["attributes"]["artistName"]
-                checked_pub = check_prod(self.pub_songs, self.pub_artists, song, artist)
-                artist_exists = any(
-                    art.lower() in artist.lower() for art in self.roster_artists
-                )
-                if checked_pub or artist_exists:
-                    self.apple_df.append((name, i + 1, artist, song, None, None, None))
-                else:
-                    if ", " in artist:
-                        comma = artist.split(", ", 1)[0]
-                        if list(
-                            filter(
-                                lambda x: (x.lower() == comma.lower()),
-                                self.signed_artists,
-                            )
-                        ):
-
-                            continue
-                        else:
-                            self.apple_df.append(
-                                (name, i + 1, comma, song, None, None, None, None)
-                            )
-                            continue
-                    if " & " in artist:
-                        andpersand = artist.split(" & ")[0]
-                        if list(
-                            filter(
-                                lambda x: (x.lower() == andpersand.lower()),
-                                self.signed_artists,
-                            )
-                        ):
-                            continue
-                        else:
-                            self.apple_df.append(
-                                (name, i + 1, artist, song, None, None, None, None)
-                            )
-                            continue
-                    if " featuring " in artist:
-                        feat = artist.split(" featuring ")[0]
-                        if list(
-                            filter(
-                                lambda x: (x.lower() == feat.lower()),
-                                self.signed_artists,
-                            )
-                        ):
-
-                            continue
-                        else:
-                            self.apple_df.append(
-                                (name, i + 1, feat, song, None, None, None, None)
-                            )
-                            continue
-
-                    else:
-                        if not list(
-                            filter(
-                                lambda x: (x.lower() == artist.lower()),
-                                self.signed_artists,
-                            )
-                        ):
-                            self.apple_df.append(
-                                (name, i + 1, artist, song, None, None, None)
-                            )
-
-        i += 1
-
-    def apple_music(self, name, url):
-
-        self.driver.get(url)
-        time.sleep(5)
-        for i in range(0, 4):
-            element = self.driver.find_element(
-                By.XPATH, '//*[@id="scrollable-page"]/footer'
-            )
-            self.driver.execute_script(
-                "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});",
-                element,
-            )
-            time.sleep(2)
-
-        row = self.driver.find_elements(By.CLASS_NAME, "songs-list-row")
-        print(name, len(row))
-
-        for i, r in enumerate(row):
-
-            song = r.find_element(By.CLASS_NAME, "songs-list-row__song-name").text
-            artist = r.find_element(
-                By.CLASS_NAME, "songs-list-row__by-line"
-            ).text.split(", ")[0]
-            if artist == "":
-                raise ValueError("Artist is empty")
-
-            checked_pub = check_prod(self.pub_songs, self.pub_artists, song, artist)
-            artist_exists = any(
-                art.lower() in artist.lower() for art in self.roster_artists
-            )
-            if checked_pub or artist_exists:
-                self.apple_df.append(
-                    (name, i + 1, artist, song, None, None, None, None)
-                )
+            if name == "APPLE MUSIC TOP MUSIC VIDEOS - ALL GENRES":
+                chart_url = f"https://api.music.apple.com/v1/catalog/us/charts?chart=most-played&offset={self.offset}&types=music-videos"
             else:
-                if ", " in artist:
-                    comma = artist.split(", ", 1)[0]
-                    if list(
-                        filter(
-                            lambda x: (x.lower() == comma.lower()),
-                            self.signed_artists,
+                chart_url = f"https://api.music.apple.com/v1/catalog/us/charts?chart=most-played&offset={self.offset}&types=music-videos&genre={genre}"
+
+            chart = self._get(chart_url)
+            charts = chart["results"]["music-videos"]
+            for c in charts:
+                li = c["data"]
+                total_videos += len(li)
+                for i, l in enumerate(li):
+                    song = l["attributes"]["name"]
+                    artist = l["attributes"]["artistName"]
+
+                    checked_pub = check_prod(
+                        self.pub_songs, self.pub_artists, song, artist
+                    )
+                    artist_exists = any(
+                        art.lower() in artist.lower() for art in self.roster_artists
+                    )
+                    if checked_pub or artist_exists:
+                        self.apple_df.append(
+                            (name, i + 1, artist, song, None, None, None)
                         )
-                    ):
-                        continue
                     else:
-                        print("Not signed", artist, song)
-                        self.apple_df.append(
-                            (name, i + 1, artist, song, None, None, None, None)
-                        )
-                        continue
-                if " & " in artist:
-                    andpersand = artist.split(" & ")[0]
-                    if list(
-                        filter(
-                            lambda x: (x.lower() == andpersand.lower()),
-                            self.signed_artists,
-                        )
-                    ):
-                        continue
-                    else:
-                        print("Not signed", artist, song)
-                        self.apple_df.append(
-                            (name, i + 1, artist, song, None, None, None, None)
-                        )
-                        continue
-                if " featuring " in artist:
-                    feat = artist.split(" featuring ")[0]
-                    if list(
-                        filter(
-                            lambda x: (x.lower() == feat.lower()), self.signed_artists
-                        )
-                    ):
-                        continue
-                    else:
-                        print("Not signed", artist, song)
-                        self.apple_df.append(
-                            (name, i + 1, feat, song, None, None, None, None)
-                        )
-                        continue
-                else:
-                    if not list(
-                        filter(
-                            lambda x: (x.lower() == artist.lower()), self.signed_artists
-                        )
-                    ):
-                        print("Unsigned", artist, song)
-                        self.apple_df.append(
-                            (name, i + 1, artist, song, None, None, None, None)
-                        )
+                        if ", " in artist:
+                            comma = artist.split(", ", 1)[0]
+                            if list(
+                                filter(
+                                    lambda x: (x.lower() == comma.lower()),
+                                    self.signed_artists,
+                                )
+                            ):
+                                continue
+                            else:
+                                self.apple_df.append(
+                                    (name, i + 1, artist, song, None, None, None, None)
+                                )
+                                print(f"{comma} not in signed")
+                                continue
+                        if " & " in artist:
+                            andpersand = artist.split(" & ")[0]
+                            if list(
+                                filter(
+                                    lambda x: (x.lower() == andpersand.lower()),
+                                    self.signed_artists,
+                                )
+                            ):
+                                continue
+                            else:
+                                self.apple_df.append(
+                                    (name, i + 1, artist, song, None, None, None, None)
+                                )
+                                print(f"{artist} not in signed")
+                                continue
+                        elif " featuring " in artist:
+                            feat = artist.split(" featuring ")[0]
+                            if list(
+                                filter(
+                                    lambda x: (x.lower() == feat.lower()),
+                                    self.signed_artists,
+                                )
+                            ):
+
+                                continue
+                            else:
+                                self.apple_df.append(
+                                    (name, i + 1, feat, song, None, None, None, None)
+                                )
+                                print(f"{artist} not in signed")
+                                continue
+
+                        else:
+                            if not list(
+                                filter(
+                                    lambda x: (x.lower() == artist.lower()),
+                                    self.signed_artists,
+                                )
+                            ):
+                                self.apple_df.append(
+                                    (name, i + 1, artist, song, None, None, None)
+                                )
+                                print(f"{artist} not in signed")
+
+                        p += 1
+
+            self.offset += 20
+            i += 1
+        print(f"Total videos for {name}: {total_videos}")
 
     def get_copyright_info(self, artist, song, chart_type, source="spotify"):
         artist = artist.lower()
@@ -597,75 +613,23 @@ class AppleMusicAPI:
 
 
 def scrape_all():
+    scrape = AppleMusicAPI(APPLE_PRIVATE_KEY, APPLE_KEY_ID, APPLE_TEAM_ID)
 
-    options = webdriver.ChromeOptions()
-    options.binary_location = "/opt/chrome/chrome"
-    options.add_argument("--headless=new")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--window-size=1963x1696")
-    options.add_argument("--single-process")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-dev-tools")
-    options.add_argument("--no-zygote")
-    options.add_argument(f"--user-data-dir={mkdtemp()}")
-    options.add_argument(f"--data-path={mkdtemp()}")
-    options.add_argument(f"--disk-cache-dir={mkdtemp()}")
-    options.add_argument("--remote-debugging-port=9222")
-    service = webdriver.ChromeService("/opt/chromedriver")
-
-    # local
-    # from selenium.webdriver.chrome.service import Service
-    # from webdriver_manager.chrome import ChromeDriverManager
-
-    # service = Service(ChromeDriverManager().install())
-
-    driver = webdriver.Chrome(service=service, options=options)
-    scrape = AppleMusicAPI(
-        APPLE_PRIVATE_KEY, APPLE_KEY_ID, APPLE_TEAM_ID, driver=driver
-    )
-
-    scrape.apple_music(
-        "APPLE MUSIC TOP SONGS - ALL GENRE",
-        "https://music.apple.com/us/browse/top-charts/songs/",
-    )
-    scrape.apple_music(
-        "APPLE MUSIC TOP SONGS - HIP-HOP",
-        "https://music.apple.com/us/browse/top-charts/songs/?genreId=18",
-    )
-    scrape.apple_music(
-        "APPLE MUSIC TOP SONGS - POP",
-        "https://music.apple.com/us/browse/top-charts/songs/?genreId=14",
-    )
-    scrape.apple_music(
-        "APPLE MUSIC TOP SONGS - R&B",
-        "https://music.apple.com/us/browse/top-charts/songs/?genreId=15",
-    )
-    scrape.apple_music(
-        "APPLE MUSIC TOP SONGS - ALTERNATIVE",
-        "https://music.apple.com/us/browse/top-charts/songs/?genreId=20",
-    )
-    scrape.apple_music(
-        "APPLE MUSIC TOP SONGS - ROCK",
-        "https://music.apple.com/us/browse/top-charts/songs/?genreId=21",
-    )
-    scrape.apple_music(
-        "APPLE MUSIC TOP SONGS - COUNTRY",
-        "https://music.apple.com/us/browse/top-charts/songs/?genreId=6",
-    )
-    scrape.apple_music(
-        "APPLE MUSIC TOP SONGS - SINGER SONGWRITER",
-        "https://music.apple.com/us/browse/top-charts/songs/?genreId=10",
-    )
-    scrape.driver.quit()
-    scrape.charts("APPLE MUSIC TOP ALBUMS - ALL GENRES", None)
-    scrape.charts("APPLE MUSIC TOP ALBUMS - HIP-HOP", 18)
-    scrape.charts("APPLE MUSIC TOP ALBUMS - ALT", 20)
-    scrape.charts("APPLE MUSIC TOP ALBUMS - POP", 14)
-    scrape.charts("APPLE MUSIC TOP ALBUMS - R&B", 15)
-    scrape.charts("APPLE MUSIC TOP ALBUMS - ROCK", 21)
-    scrape.charts("APPLE MUSIC TOP ALBUMS - COUNTRY", 6)
-    scrape.charts("APPLE MUSIC TOP ALBUMS - SINGER SONGWRITER", 10)
+    scrape.tracks("APPLE MUSIC TOP SONGS - ALL GENRES", None)
+    scrape.tracks("APPLE MUSIC TOP SONGS - HIP-HOP", 18)
+    scrape.tracks("APPLE MUSIC TOP SONGS - ALT", 20)
+    scrape.tracks("APPLE MUSIC TOP SONGS - POP", 14)
+    scrape.tracks("APPLE MUSIC TOP SONGS - R&B", 15)
+    scrape.tracks("APPLE MUSIC TOP SONGS - ROCK", 21)
+    scrape.tracks("APPLE MUSIC TOP SONGS - COUNTRY", 6)
+    scrape.albums("APPLE MUSIC TOP ALBUMS - ALL GENRES", None)
+    scrape.albums("APPLE MUSIC TOP ALBUMS - HIP-HOP", 18)
+    scrape.albums("APPLE MUSIC TOP ALBUMS - ALT", 20)
+    scrape.albums("APPLE MUSIC TOP ALBUMS - POP", 14)
+    scrape.albums("APPLE MUSIC TOP ALBUMS - R&B", 15)
+    scrape.albums("APPLE MUSIC TOP ALBUMS - ROCK", 21)
+    scrape.albums("APPLE MUSIC TOP ALBUMS - COUNTRY", 6)
+    scrape.albums("APPLE MUSIC TOP ALBUMS - SINGER SONGWRITER", 10)
     scrape.music_videos("APPLE MUSIC TOP MUSIC VIDEOS - ALL GENRES", None)
     scrape.music_videos("APPLE MUSIC TOP MUSIC VIDEOS - HIP-HOP", 18)
     scrape.music_videos("APPLE MUSIC TOP MUSIC VIDEOS - ALT", 20)
