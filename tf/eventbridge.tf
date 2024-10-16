@@ -70,7 +70,7 @@ resource "aws_scheduler_schedule" "shazam_schedule" {
 }
 
 
-resource "aws_scheduler_schedule" "no-track_schedule" {
+resource "aws_scheduler_schedule" "no_track_schedule" {
   name       = "no-track-schedule"
   group_name = "default"
 
