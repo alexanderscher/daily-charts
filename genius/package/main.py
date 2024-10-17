@@ -329,10 +329,10 @@ class Scrape:
             artist,
             song,
             streams,
+            movement,
             label,
             link,
             unsigned,
-            movement,
         ) in genius_data.iloc[:].itertuples(index=False):
 
             self.running(

@@ -9,6 +9,8 @@ import boto3
 from datetime import datetime
 from tempfile import mkdtemp
 import re
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 
 pd.set_option("display.max_rows", None)
@@ -89,20 +91,27 @@ class Scrape:
             callback()
 
     def spotify(self, name, url):
-
         self.driver.get(url)
-        time.sleep(5)
 
-        d = self.driver.find_element(By.XPATH, '//*[@id="date_picker"]')
-        date = d.get_attribute("value")
-        dvg = self.driver.find_elements(By.TAG_NAME, "tr")
+        date_element = WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located((By.ID, "date_picker"))
+        )
+        date = date_element.get_attribute("value")
+
+        dvg = WebDriverWait(self.driver, 10).until(
+            EC.presence_of_all_elements_located((By.TAG_NAME, "tr"))
+        )
         dvg_rows = len(dvg) - 1
-        dvg_table_data = self.driver.find_elements(By.TAG_NAME, "td")
+
+        dvg_table_data = WebDriverWait(self.driver, 10).until(
+            EC.presence_of_all_elements_located((By.TAG_NAME, "td"))
+        )
         dvg_table_data_length = len(dvg_table_data)
-        dvg_columns = int(dvg_table_data_length / dvg_rows)
+        dvg_columns = dvg_table_data_length // dvg_rows
+
         non_latin_pattern = r"[\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\u0400-\u04FF]"
 
-        for i, song in enumerate(dvg[1 : len(dvg)]):
+        for i, song in enumerate(dvg[1:]):
             position = (
                 dvg_table_data[i * dvg_columns + 1]
                 .find_elements(By.XPATH, ".//span")[0]
@@ -120,7 +129,7 @@ class Scrape:
             try:
                 mov = int(prev) - int(position)
                 if mov > 0:
-                    mov = "+" f"{mov}"
+                    mov = f"+{mov}"
             except ValueError:
                 if peak != position and prev == "—":
                     mov = "RE-ENTRY"
