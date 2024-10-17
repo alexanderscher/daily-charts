@@ -72,9 +72,9 @@ class Scrape:
 
         for c in city:
             if c.text != "Cities":
-                print(c.text)
                 formatted = c.text.replace(",", "").replace(" ", "-").lower()
                 citylist.append(formatted)
+                print(c.text)
 
         for city in citylist:
 
