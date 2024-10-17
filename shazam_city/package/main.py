@@ -30,9 +30,13 @@ non_latin_pattern = (
 )
 path = "/tmp/shazam-city.csv"
 
+CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID_GOOGLE")
+USER_ID = os.getenv("SPOTIFY_USER_ID_GOOGLE")
+CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET_GOOGLE")
+
 
 class Scrape:
-    def __init__(self, CLIENT_ID, USER_ID, CLIENT_SECRET):
+    def __init__(self):
         self.df = []
         self.us = []
         self.other = []
@@ -45,6 +49,7 @@ class Scrape:
         self.signed_artists = db.get_signed_artists()
         self.prospects = db.get_prospects()
         self.client = SpotifyAPI(CLIENT_ID, USER_ID, CLIENT_SECRET)
+        self.repeat = []
 
     def shazam_city(self, url, country):
         response = requests.get(url)
@@ -61,7 +66,7 @@ class Scrape:
 
         for city in city_links:
             city_url = urljoin("https://www.shazam.com", city)
-
+            city_name = city_url.split("/")[-1]
             city_response = requests.get(city_url)
             if city_response.status_code != 200:
                 print(
@@ -78,7 +83,7 @@ class Scrape:
 
             button_url = urljoin("https://www.shazam.com", button.get("href"))
 
-            self.download_csv(button_url, city, country)
+            self.download_csv(button_url, city_name, country)
 
     def download_csv(self, button_url, city, country):
         response = requests.get(button_url)
@@ -99,6 +104,8 @@ class Scrape:
         s = row["Title"]
         a = row["Artist"]
         idx = row["Rank"]
+        if a in self.repeat:
+            return
 
         if re.search(non_latin_pattern, a):
             print(f"Non-latin artist: {a}")
@@ -110,6 +117,7 @@ class Scrape:
         if not self.check_artist(a):
             print(f"Unsigned artist: {a}")
             self.df.append((f"Shazam Cities {country} Top 50 {city}", idx, a, s))
+        self.repeat.append(a)
 
     def check_artist(self, artist):
         variations = [
@@ -129,16 +137,9 @@ class Scrape:
 
     def city_search(self, shazam_cities):
 
-        chart_header = None
-
         for chart, position, artist, song, movement in shazam_cities.itertuples(
             index=False
         ):
-
-            if "Shazam Top 50" in chart:
-                if chart != chart_header:
-                    chart_header = chart
-                    print("\n" f"{chart}\n")
 
             if ", " in artist:
                 a = artist.split(", ")
@@ -340,15 +341,18 @@ def send_email_ses(subject, body) -> None:
         print(f"Email sent! Message ID: {response['MessageId']}")
 
 
-def scrape_all(event):
-    client_id = event["CLIENT_ID"]
-    user_id = event["USER_ID"]
-    client_secret = event["CLIENT_SECRET"]
+def scrape_all():
 
-    scrape = Scrape(client_id, user_id, client_secret)
+    scrape = Scrape()
 
-    for link, country in event["links"]:
-        scrape.shazam_city(link, country)
+    scrape.shazam_city(
+        "https://www.shazam.com/charts/top-50/united-states/los-angeles", "US"
+    )
+    scrape.shazam_city("https://www.shazam.com/charts/top-50/canada/calgary", "CA")
+    scrape.shazam_city(
+        "https://www.shazam.com/charts/top-50/united-kingdom/belfast", "UK"
+    )
+    scrape.shazam_city("https://www.shazam.com/charts/top-50/australia/adelaide", "AU")
 
     shazam_cities = pd.DataFrame(
         scrape.df, columns=["Chart", "Position", "Artist", "Song"]
@@ -358,7 +362,6 @@ def scrape_all(event):
 
     for i, r in shazam_cities.iterrows():
         pos = r["Position"]
-        chart = r["Chart"]
         match = data_yesterday.loc[
             (data_yesterday["song"].str.lower() == r["Song"].lower())
         ]
@@ -394,14 +397,16 @@ def scrape_all(event):
     )
 
     db.insert_shazam_city_charts(unsigned_charts)
-    body = scrape.create_html(event["subject"], unsigned_charts)
+    body = scrape.create_html("Shazam US Cities Report", unsigned_charts)
 
-    subject = f'{event['subject']}- {datetime.now(pacific_tz).strftime("%m/%d/%y")}'
+    subject = (
+        f'{'Shazam US Cities Report'}- {datetime.now(pacific_tz).strftime("%m/%d/%y")}'
+    )
     send_email_ses(subject, body)
 
 
 def lambda_handler(event, context):
-    scrape_all(event)
+    scrape_all()
     return {
         "statusCode": 200,
         "body": "Scrape complete",
