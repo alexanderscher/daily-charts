@@ -358,14 +358,13 @@ def scrape_all(event):
 
     for i, r in shazam_cities.iterrows():
         pos = r["Position"]
+        chart = r["Chart"]
         match = data_yesterday.loc[
             (data_yesterday["song"].str.lower() == r["Song"].lower())
         ]
 
         if not match.empty:
-            shazam_cities.at[i, "Label"] = match["label"].iloc[0]
-            shazam_cities.at[i, "Link"] = match["link"].iloc[0]
-            shazam_cities.at[i, "Unsigned"] = match["unsigned"].iloc[0]
+
             pos_y = int(match["position"].iloc[0])
 
             if pos_y == pos:
