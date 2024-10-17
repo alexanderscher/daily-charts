@@ -78,6 +78,7 @@ def velocity():
 
 def create_html():
     conor = os.getenv("CONOR")
+    lucas = os.getenv("LUCAS")
     ari = os.getenv("ARI")
     laura = os.getenv("LAURA")
     micah = os.getenv("MICAH")
@@ -99,7 +100,7 @@ def create_html():
         <body>
         <p>
             Velocity Report - {datetime.now(pacific_tz).strftime("%m/%d/%y")}
-            <br> {conor}, {ari}, {laura}, {micah}
+            <br> {conor}, {ari}, {laura}, {micah}, {lucas}
         </p>
     """
 

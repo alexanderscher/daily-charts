@@ -13,6 +13,7 @@ resource "aws_lambda_function" "spotify_charts" {
       SPOTIFY_USER_ID        = var.spotify_user_id
       ALEX                   = var.alex
       ALEX_MAIL              = var.alex_mail
+      LUCAS                  = var.lucas
       ARI                    = var.ari
       LAURA                  = var.laura
       CONOR                  = var.conor
@@ -40,6 +41,7 @@ resource "aws_lambda_function" "velocity" {
       SPOTIFY_USER_ID_L2TK       = var.spotify_user_id_l2tk
       ALEX                       = var.alex
       ALEX_MAIL                  = var.alex_mail
+      LUCAS                      = var.lucas
       ARI                        = var.ari
       LAURA                      = var.laura
       CONOR                      = var.conor
@@ -68,6 +70,7 @@ resource "aws_lambda_function" "apple_charts" {
       APPLE_PRIVATE_KEY           = var.apple_private_key
       ALEX                        = var.alex
       ALEX_MAIL                   = var.alex_mail
+      LUCAS                       = var.lucas
       ARI                         = var.ari
       LAURA                       = var.laura
       CONOR                       = var.conor
@@ -93,6 +96,7 @@ resource "aws_lambda_function" "shazam_charts" {
       SPOTIFY_USER_ID       = var.spotify_user_id
       ALEX                  = var.alex
       ALEX_MAIL             = var.alex_mail
+      LUCAS                 = var.lucas
       ARI                   = var.ari
       LAURA                 = var.laura
       CONOR                 = var.conor
@@ -116,6 +120,7 @@ resource "aws_lambda_function" "shazam_city_charts" {
 
       ALEX                         = var.alex
       ALEX_MAIL                    = var.alex_mail
+      LUCAS                        = var.lucas
       ARI                          = var.ari
       LAURA                        = var.laura
       CONOR                        = var.conor
@@ -143,6 +148,7 @@ resource "aws_lambda_function" "genius_charts" {
       SPOTIFY_USER_ID_L2TK       = var.spotify_user_id_l2tk
       ALEX                       = var.alex
       ALEX_MAIL                  = var.alex_mail
+      LUCAS                      = var.lucas
       ARI                        = var.ari
       LAURA                      = var.laura
       CONOR                      = var.conor

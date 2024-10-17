@@ -15,6 +15,11 @@ variable "alex" {
   type = string
 }
 
+variable "lucas" {
+  type = string
+
+}
+
 variable "alex_mail" {
   type = string
 }

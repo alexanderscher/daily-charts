@@ -104,6 +104,7 @@ jobs:
           alex = "${{ secrets.ALEX }}"
           alex_mail = "${{ secrets.ALEX_MAIL }}"
           conor = "${{ secrets.CONOR }}"
+          lucas = "${{ secrets.LUCAS }}"
           ari = "${{ secrets.ARI }}"
           laura = "${{ secrets.LAURA }}"
           micah = "${{ secrets.MICAH }}"

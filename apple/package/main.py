@@ -706,6 +706,7 @@ prospects = db.get_prospects()
 
 def create_html(type, df, report_name):
     conor = os.getenv("CONOR")
+    lucas = os.getenv("LUCAS")
     ari = os.getenv("ARI")
     laura = os.getenv("LAURA")
     micah = os.getenv("MICAH")
@@ -725,7 +726,7 @@ def create_html(type, df, report_name):
         <body>
         <p>
             {report_name} - {datetime.now(pacific_tz).strftime("%m/%d/%y")}
-            <br> {conor}, {ari}, {laura}, {micah}
+            <br> {conor}, {ari}, {laura}, {micah}, {lucas}
         </p>
         """
 
