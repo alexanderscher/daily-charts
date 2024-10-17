@@ -66,12 +66,11 @@ class Scrape:
         citylist = []
 
         for c in city_elements:
-
-            print(c.get_attribute("value"))
             link = c.get_attribute("value")
             citylist.append(link)
 
         for city in citylist:
+            time.sleep(5)
             city_url = f"https://www.shazam.com{city}"
             print(city_url)
             self.driver.get(city_url)
@@ -116,6 +115,7 @@ class Scrape:
             return
 
         if not self.is_signed_or_roster_artist(a):
+            print(f"Unsigned artist: {a}")
             self.df.append((f"Shazam Cities {country} Top 50 {city}", idx, a, s))
 
     def is_signed_or_roster_artist(self, artist):
