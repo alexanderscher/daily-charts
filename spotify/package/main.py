@@ -203,18 +203,6 @@ class Scrape:
             unsigned_status,
         ) in spotify_df.itertuples(index=False):
 
-            if ", " in artist:
-                a = artist.split(", ")
-                artist = a[0]
-
-            elif " featuring " in artist:
-                a = artist.split(" featuring ")
-                artist = a[0]
-
-            elif "feat." in artist:
-                a = artist.split("feat.")
-                artist = a[0]
-
             checked_pub = check_prod(self.pub_songs, self.pub_artists, song, artist)
             artist_exists = any(
                 art.lower() in artist.lower() for art in self.roster_artists
@@ -299,31 +287,10 @@ class Scrape:
                     )
 
                 else:
-                    if ", " in artist.lower():
-                        a = artist(", ")
-                        artist = a[0]
-                        copyright = self.client.get_artist_copy_track(
-                            artist.lower(), song, "spotify"
-                        )
 
-                    elif " featuring " in artist.lower():
-                        a = artist(" featuring ")
-                        artist = a[0]
-                        copyright = self.client.get_artist_copy_track(
-                            artist.lower(), song, "spotify"
-                        )
-
-                    elif "feat." in artist.lower():
-                        a = artist("feat.")
-                        artist = a[0]
-                        copyright = self.client.get_artist_copy_track(
-                            artist.lower(), song, "spotify"
-                        )
-                    else:
-
-                        copyright = self.client.get_artist_copy_track(
-                            artist.lower(), song, "spotify"
-                        )
+                    copyright = self.client.get_artist_copy_track(
+                        artist.lower(), song, "spotify"
+                    )
 
                     if copyright:
                         matched_labels = list(

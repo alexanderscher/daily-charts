@@ -77,24 +77,10 @@ class Scrape:
         self.process_data(name, data)
         os.remove(path)
 
-    def process_data(self, name, data):
-        for i, row in data.iterrows():
-            s = row["Title"]
-            a = row["Artist"]
-            idx = row["Rank"]
+    def check_and_append_artist(self, name, idx, artist, track):
+        if re.search(non_latin_pattern, artist) or re.search(non_latin_pattern, track):
+            return None
 
-            if re.search(non_latin_pattern, a) or re.search(non_latin_pattern, s):
-                continue
-
-            artist_name = self.check_artist(a)
-
-            if artist_name:
-                continue
-
-            self.df.append((name, idx, a, s, None, None, None))
-            print("UNSIGNED", a)
-
-    def check_artist(self, artist):
         variations = [
             artist.split(", ", 1)[0],
             artist.split(" featuring ")[0],
@@ -105,15 +91,25 @@ class Scrape:
             part1, part2 = artist.split(" & ", 1)
             variations.extend([part1, part2])
 
-        return next(
-            (
-                name
-                for name in variations
-                if name.lower()
-                in map(str.lower, self.signed_artists + self.roster_artists)
-            ),
-            None,
+        matched_variation = any(
+            a.lower() in map(str.lower, self.signed_artists + self.roster_artists)
+            for a in variations
         )
+
+        if matched_variation:
+            return None
+        elif " & " in artist:
+            self.df.append((name, idx, artist, track, None, None, None))
+        else:
+            self.df.append((name, idx, variations[0], track, None, None, None))
+
+    def process_data(self, name, data):
+        for i, row in data.iterrows():
+            s = row["Title"]
+            a = row["Artist"]
+            idx = row["Rank"]
+
+            self.check_and_append_artist(name, idx, a, s)
 
     def chart_search(self, shazam_charts):
 
@@ -127,14 +123,6 @@ class Scrape:
             label,
             unsigned,
         ) in shazam_charts.iloc[:].itertuples(index=False):
-
-            if ", " in artist:
-                a = artist.split(", ")
-                artist = a[0]
-
-            if " & " in artist:
-                a = artist.split(" & ")
-                artist = a[0]
 
             if artist in self.already_checked:
                 print("already_checked", artist)
@@ -178,16 +166,22 @@ class Scrape:
                     artist.lower(), song, "shazam"
                 )
 
+                if not copyright and " & " in artist:
+                    artist = artist.split(" & ")[0]
+                    copyright = self.client.get_artist_copy_track(
+                        artist.lower(), song, "shazam"
+                    )
+
                 if copyright:
                     year_pattern = r"202[0-4]"
                     if not re.search(year_pattern, copyright[0]):
                         continue
-                    matched_labels = list(
-                        filter(
-                            lambda x: smart_partial_match(x, copyright[0].lower()),
-                            self.major_labels,
-                        )
-                    )
+
+                    matched_labels = [
+                        label
+                        for label in self.major_labels
+                        if smart_partial_match(label, copyright[0].lower())
+                    ]
 
                     if not matched_labels:
                         self.us.append(

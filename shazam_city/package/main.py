@@ -106,20 +106,13 @@ class Scrape:
         idx = row["Rank"]
         if a in self.repeat:
             return
-
-        if re.search(non_latin_pattern, a):
-            print(f"Non-latin artist: {a}")
-            return
-        if re.search(non_latin_pattern, s):
-            print(f"Non-latin song: {s}")
-            return
-
-        if not self.check_artist(a):
-            print(f"Unsigned artist: {a}")
-            self.df.append((f"Shazam Cities {country} Top 50 {city}", idx, a, s))
         self.repeat.append(a)
+        self.check_and_append_artist(city, idx, a, s, country)
 
-    def check_artist(self, artist):
+    def check_and_append_artist(self, city, idx, artist, track, country):
+        if re.search(non_latin_pattern, artist) or re.search(non_latin_pattern, track):
+            return None
+
         variations = [
             artist.split(", ", 1)[0],
             artist.split(" featuring ")[0],
@@ -130,27 +123,27 @@ class Scrape:
             part1, part2 = artist.split(" & ", 1)
             variations.extend([part1, part2])
 
-        return any(
-            name.lower() in map(str.lower, self.signed_artists + self.roster_artists)
-            for name in variations
+        matched_variation = any(
+            a.lower() in map(str.lower, self.signed_artists + self.roster_artists)
+            for a in variations
         )
+
+        if matched_variation:
+            return None
+        elif " & " in artist:
+            self.df.append(
+                (f"Shazam Cities {country} Top 50 {city}", idx, artist, track)
+            )
+        else:
+            self.df.append(
+                (f"Shazam Cities {country} Top 50 {city}", idx, variations[0], track)
+            )
 
     def city_search(self, shazam_cities):
 
         for chart, position, artist, song, movement in shazam_cities.itertuples(
             index=False
         ):
-
-            if ", " in artist:
-                a = artist.split(", ")
-                artist = a[0]
-
-            if " & " in artist:
-                a = artist.split(" & ")
-                artist = a[0]
-            if " X " in artist:
-                a = artist.split(" X ")
-                artist = a[0]
 
             if artist in self.already_checked:
                 continue
@@ -185,13 +178,16 @@ class Scrape:
                         artist.lower(), song, "shazam"
                     )
 
-                    if not copyright or (
-                        "2023" not in copyright[0] and "2024" not in copyright[0]
-                    ):
-
-                        continue
+                    if not copyright and " & " in artist:
+                        artist = artist.split(" & ")[0]
+                        copyright = self.client.get_artist_copy_track(
+                            artist.lower(), song, "shazam"
+                        )
 
                     if copyright:
+                        year_pattern = r"202[0-4]"
+                        if not re.search(year_pattern, copyright[0]):
+                            continue
                         matched_labels = list(
                             filter(
                                 lambda x: smart_partial_match(x, copyright[0].lower()),

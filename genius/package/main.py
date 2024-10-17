@@ -46,11 +46,49 @@ class Scrape:
         self.other = []
         self.prospect_list = []
 
+    def check_and_append_artist(self, name, index, artist_name, track, views):
+        if artist_name in [
+            "Genius Romanizations",
+            "Genius English Translations",
+            "Traditional Transcriptions",
+        ]:
+            return None
+        elif re.search(non_latin_pattern, artist_name):
+            return None
+        elif re.search(non_latin_pattern, track):
+            return None
+
+        variations = [
+            artist_name.split(" (", 1)[0],
+            artist_name.split(", ", 1)[0],
+            artist_name.split(" & ", 1)[0],
+        ]
+
+        if " & " in artist_name:
+            part1, part2 = artist_name.split(" & ", 1)
+            variations.extend([part1, part2])
+
+        matched_variation = next(
+            (
+                variation
+                for variation in variations
+                if variation.lower()
+                in map(str.lower, self.signed_artists + self.roster_artists)
+            ),
+            None,
+        )
+
+        if matched_variation:
+            return None
+        elif " & " in artist_name:
+            self.df.append((name, index, artist_name, track, views))
+        else:
+            self.df.append((name, index, variations[0], track, views))
+
     def genius(self, name, genre):
         time.sleep(5)
         page = 1
         index = 1
-        all_items = []
 
         while True:
             try:
@@ -74,65 +112,7 @@ class Scrape:
                     artist_name = item.get("artist_names", "Unknown Artist")
                     track = item.get("title", "Unknown Title")
                     views = item.get("stats", {}).get("pageviews", 0)
-                    all_items.append((artist_name, track, views))
-
-                    if artist_name in [
-                        "Genius Romanizations",
-                        "Genius English Translations",
-                        "Traditional Transcriptions",
-                    ]:
-                        continue
-                    elif re.search(non_latin_pattern, artist_name):
-
-                        continue
-                    elif re.search(non_latin_pattern, track):
-                        continue
-                    else:
-                        if " (" in artist_name:
-                            ft = artist_name.split(" (")[0]
-                            if list(
-                                filter(
-                                    lambda x: (x.lower() == ft.lower()),
-                                    self.signed_artists + self.roster_artists,
-                                )
-                            ):
-                                continue
-                            else:
-                                self.df.append((name, index, ft, track, views))
-
-                        elif ", " in artist_name:
-                            comma = artist_name.split(", ")[0]
-                            if list(
-                                filter(
-                                    lambda x: (x.lower() == comma.lower()),
-                                    self.signed_artists + self.roster_artists,
-                                )
-                            ):
-                                continue
-                            else:
-                                self.df.append((name, index, artist_name, track, views))
-
-                        elif " & " in artist_name:
-                            andpersand = artist_name.split(" & ")[0]
-                            if list(
-                                filter(
-                                    lambda x: (x.lower() == andpersand.lower()),
-                                    self.signed_artists + self.roster_artists,
-                                )
-                            ):
-                                continue
-                            else:
-                                self.df.append((name, index, artist_name, track, views))
-
-                        else:
-                            if not list(
-                                filter(
-                                    lambda x: (x.lower() == artist_name.lower()),
-                                    self.signed_artists + self.roster_artists,
-                                )
-                            ):
-
-                                self.df.append((name, index, artist_name, track, views))
+                    self.check_and_append_artist(name, index, artist_name, track, views)
 
                     index += 1
 
@@ -146,7 +126,6 @@ class Scrape:
             except Exception as e:
                 print(f"An unexpected error occurred: {e}")
                 break
-        print(f"Total items fetched: {len(all_items)}")
 
     def _process_artist(self, artist, song):
         if artist in [
@@ -231,16 +210,8 @@ class Scrape:
             if not copyright and " & " in artist:
                 artist = artist.split(" & ")[0]
                 processed_artist = self._process_artist(artist, song)
-                self.running(
-                    chart,
-                    position,
-                    artist,
-                    song,
-                    streams,
-                    movement,
-                    label,
-                    link,
-                    unsigned,
+                copyright = self.client.get_artist_copy_track(
+                    processed_artist.lower(), song, "daily_chart"
                 )
 
             elif copyright:
@@ -349,7 +320,6 @@ class Scrape:
 
     def create_html(self, chart_name, data):
         conor = os.getenv("CONOR")
-        lucas = os.getenv("LUCAS")
         ari = os.getenv("ARI")
         laura = os.getenv("LAURA")
         micah = os.getenv("MICAH")
@@ -369,7 +339,7 @@ class Scrape:
         <body>
         <p>
             {chart_name} - {datetime.datetime.now().strftime("%m/%d/%y")}
-            <br> {conor}, {ari}, {laura}, {micah}, {lucas}
+            <br> {conor}, {ari}, {laura}, {micah}
         </p>
         """
 
