@@ -56,11 +56,13 @@ class Scrape:
 
     def shazam_city(self, url, country):
         self.driver.get(url)
-        time.sleep(3)
-        select_element = self.driver.find_element(
-            By.CSS_SELECTOR, 'select[aria-label="Cities"]'
-        )
+        time.sleep(5)
 
+        select_element = WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located(
+                (By.CSS_SELECTOR, 'select[aria-label="Cities"]')
+            )
+        )
         city_elements = select_element.find_elements(By.TAG_NAME, "option")
 
         citylist = []
@@ -80,105 +82,67 @@ class Scrape:
                 citylist.append(formatted)
                 print(c.text)
 
+        print("citylist", citylist)
         for city in citylist:
+            city_url = f"https://www.shazam.com/charts/top-50/{country_url}/{city}"
+            print(city_url)
+            self.driver.get(city_url)
 
-            url = f"https://www.shazam.com/charts/top-50/{country_url}/{city}"
-            print(url)
-            self.driver.get(url)
-            time.sleep(3)
+            try:
+                button_url = (
+                    WebDriverWait(self.driver, 10)
+                    .until(
+                        EC.element_to_be_clickable(
+                            (By.CLASS_NAME, "Header_responsiveView__srGi_")
+                        )
+                    )
+                    .get_attribute("href")
+                )
 
-            button_url = self.driver.find_element(
-                By.CLASS_NAME, "Header_responsiveView__srGi_"
-            ).get_attribute("href")
-            response = requests.get(button_url)
-            with open(path, "wb") as f:
-                f.write(response.content)
+                response = requests.get(button_url)
+                with open(path, "wb") as f:
+                    f.write(response.content)
 
-            data = pd.read_csv(path, skiprows=2, on_bad_lines="skip")
+                data = pd.read_csv(path, skiprows=2, on_bad_lines="skip")
 
-            for i, row in data.iterrows():
-                s = row["Title"]
-                a = row["Artist"]
-                idx = row["Rank"]
-                if re.search(non_latin_pattern, a):
-                    print(f"Non-latin artist: {a}")
-                    continue
-                elif re.search(non_latin_pattern, s):
-                    print(f"Non-latin song: {s}")
-                    continue
-                else:
+                for i, row in data.iterrows():
+                    self.process_shazam_row(row, city, country)
 
-                    if ", " in a:
-                        comma = a.split(", ", 1)[0]
-                        if list(
-                            filter(
-                                lambda x: (x.lower() == comma.lower()),
-                                self.signed_artists + self.roster_artists,
-                            )
-                        ):
-                            continue
-                        else:
-                            self.df.append(
-                                (f"Shazam Cities {country} Top 50 {city}", idx, a, s)
-                            )
-                            continue
-
-                    elif " & " in a:
-                        andpersand = a.split(" & ")[0]
-                        if list(
-                            filter(
-                                lambda x: (x.lower() == andpersand.lower()),
-                                self.signed_artists + self.roster_artists,
-                            )
-                        ):
-                            continue
-                        else:
-                            self.df.append(
-                                (f"Shazam Cities {country} Top 50 {city}", idx, a, s)
-                            )
-                            continue
-                    elif " featuring " in a:
-                        ft = a.split(" featuring ")[0]
-                        if list(
-                            filter(
-                                lambda x: (x.lower() == ft.lower()),
-                                self.signed_artists + self.roster_artists,
-                            )
-                        ):
-                            continue
-                        else:
-                            self.df.append(
-                                (f"Shazam Cities {country} Top 50 {city}", idx, a, s)
-                            )
-                            continue
-                    elif " x " in a:
-                        ex = a.split(" x ")[0]
-                        if list(
-                            filter(
-                                lambda x: (x.lower() == ex.lower()),
-                                self.signed_artists + self.roster_artists,
-                            )
-                        ):
-                            continue
-                        else:
-                            self.df.append(
-                                (f"Shazam Cities {country} Top 50 {city}", idx, a, s)
-                            )
-                            continue
-                    else:
-                        if not list(
-                            filter(
-                                lambda x: (x.lower() == a.lower()),
-                                self.signed_artists + self.roster_artists,
-                            )
-                        ):
-
-                            self.df.append(
-                                (f"Shazam Cities {country} Top 50 {city}", idx, a, s)
-                            )
-                            continue
+            except Exception as e:
+                print(f"Error processing city {city}: {str(e)}")
+                continue
 
             os.remove(path)
+
+    def process_shazam_row(self, row, city, country):
+        s = row["Title"]
+        a = row["Artist"]
+        idx = row["Rank"]
+
+        if re.search(non_latin_pattern, a):
+            print(f"Non-latin artist: {a}")
+            return
+        elif re.search(non_latin_pattern, s):
+            print(f"Non-latin song: {s}")
+            return
+
+        if not self.is_signed_or_roster_artist(a):
+            self.df.append((f"Shazam Cities {country} Top 50 {city}", idx, a, s))
+
+    def is_signed_or_roster_artist(self, artist):
+        if ", " in artist:
+            artist = artist.split(", ", 1)[0]
+        elif " & " in artist:
+            artist = artist.split(" & ")[0]
+        elif " featuring " in artist:
+            artist = artist.split(" featuring ")[0]
+        elif " x " in artist:
+            artist = artist.split(" x ")[0]
+
+        return any(
+            x.lower() == artist.lower()
+            for x in self.signed_artists + self.roster_artists
+        )
 
     def city_search(self, shazam_cities):
 
