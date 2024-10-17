@@ -56,37 +56,26 @@ class Scrape:
 
     def shazam_city(self, url, country):
         self.driver.get(url)
-        time.sleep(5)
+        time.sleep(3)
 
-        select_element = WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located(
-                (By.CSS_SELECTOR, 'select[aria-label="Cities"]')
+        city_elements = WebDriverWait(self.driver, 10).until(
+            EC.presence_of_all_elements_located(
+                (By.XPATH, "//option[starts-with(@value, '/charts/top-50/')]")
             )
         )
-        city_elements = select_element.find_elements(By.TAG_NAME, "option")
-
         citylist = []
-        country_url = None
-        if "united-states" in url:
-            country_url = "united-states"
-        elif "united-kingdom" in url:
-            country_url = "united-kingdom"
-        elif "canada" in url:
-            country_url = "canada"
-        elif "australia" in url:
-            country_url = "australia"
 
         for c in city_elements:
-            if c.text != "Cities":
-                formatted = c.text.replace(",", "").replace(" ", "-").lower()
-                citylist.append(formatted)
-                print(c.text)
 
-        print("citylist", citylist)
+            print(c.get_attribute("value"))
+            link = c.get_attribute("value")
+            citylist.append(link)
+
         for city in citylist:
-            city_url = f"https://www.shazam.com/charts/top-50/{country_url}/{city}"
+            city_url = f"https://www.shazam.com{city}"
             print(city_url)
             self.driver.get(city_url)
+            name = city.split("/")[-1]
 
             try:
                 button_url = (
@@ -106,10 +95,10 @@ class Scrape:
                 data = pd.read_csv(path, skiprows=2, on_bad_lines="skip")
 
                 for i, row in data.iterrows():
-                    self.process_shazam_row(row, city, country)
+                    self.process_shazam_row(row, name, country)
 
             except Exception as e:
-                print(f"Error processing city {city}: {str(e)}")
+                print(f"Error processing city {name}: {str(e)}")
                 continue
 
             os.remove(path)
