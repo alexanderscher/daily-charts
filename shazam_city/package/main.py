@@ -130,7 +130,7 @@ class Scrape:
 
         if matched_variation:
             return None
-        elif " & " in artist:
+        elif " & " in artist and ", " not in artist:
             self.df.append(
                 (f"Shazam Cities {country} Top 50 {city}", idx, artist, track)
             )

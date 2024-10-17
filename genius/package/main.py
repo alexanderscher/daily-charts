@@ -80,7 +80,7 @@ class Scrape:
 
         if matched_variation:
             return None
-        elif " & " in artist_name:
+        elif " & " in artist_name and ", " not in artist_name:
             self.df.append((name, index, artist_name, track, views))
         else:
             self.df.append((name, index, variations[0], track, views))
