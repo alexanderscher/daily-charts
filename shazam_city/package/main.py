@@ -358,10 +358,8 @@ def scrape_all(event):
 
     for i, r in shazam_cities.iterrows():
         pos = r["Position"]
-        chart = r["Chart"]
         match = data_yesterday.loc[
             (data_yesterday["song"].str.lower() == r["Song"].lower())
-            & (data_yesterday["chart"].str.lower() == chart.lower())
         ]
 
         if not match.empty:
