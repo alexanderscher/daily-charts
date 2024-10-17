@@ -12,6 +12,9 @@ from datetime import datetime
 import re
 from selenium.webdriver.common.by import By
 import requests
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 pd.set_option("display.max_rows", None)
 pd.set_option("display.max_columns", None)
@@ -54,8 +57,8 @@ class Scrape:
     def shazam_city(self, url, country):
         self.driver.get(url)
         time.sleep(3)
-        city = self.driver.find_elements(
-            By.XPATH,
+        city_elements = self._wait_for_element(
+            self.driver,
             "/html/body/div[2]/div[1]/main/div[1]/div/div[3]/div[4]/div[1]/select/option",
         )
 
@@ -70,7 +73,7 @@ class Scrape:
         elif "australia" in url:
             country_url = "australia"
 
-        for c in city:
+        for c in city_elements:
             if c.text != "Cities":
                 formatted = c.text.replace(",", "").replace(" ", "-").lower()
                 citylist.append(formatted)
@@ -81,10 +84,12 @@ class Scrape:
             url = f"https://www.shazam.com/charts/top-50/{country_url}/{city}"
             self.driver.get(url)
             time.sleep(3)
+
             name = self.driver.find_element(
                 By.XPATH,
                 "/html/body/div[2]/div[1]/main/div[1]/div/div[3]/div[3]/div[1]/button/span",
             ).text
+
             button_url = self.driver.find_element(
                 By.CLASS_NAME, "Header_responsiveView__srGi_"
             ).get_attribute("href")
@@ -177,6 +182,11 @@ class Scrape:
                             continue
 
             os.remove(path)
+
+    def _wait_for_element(self, driver, xpath, timeout=10):
+        return WebDriverWait(driver, timeout).until(
+            EC.presence_of_element_located((By.XPATH, xpath))
+        )
 
     def city_search(self, shazam_cities):
 
