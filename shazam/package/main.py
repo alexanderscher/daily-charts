@@ -1,6 +1,5 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException
 import time
 from botocore.exceptions import ClientError
 import pandas as pd
@@ -12,7 +11,6 @@ from tempfile import mkdtemp
 from datetime import datetime
 import re
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
 import requests
 
 pd.set_option("display.max_rows", None)

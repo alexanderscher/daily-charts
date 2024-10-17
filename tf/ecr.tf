@@ -56,3 +56,12 @@ data "aws_ecr_image" "no_track_ecr" {
   image_tag       = "latest"
 }
 
+
+resource "aws_ecr_repository" "shazam_city_charts_ecr" {
+  name = "shazam-city-charts-ecr"
+}
+
+data "aws_ecr_image" "shazam_city_charts_ecr" {
+  repository_name = aws_ecr_repository.shazam_city_charts_ecr.name
+  image_tag       = "latest"
+}

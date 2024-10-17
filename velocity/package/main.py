@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from botocore.exceptions import ClientError
 import pandas as pd
 import os
