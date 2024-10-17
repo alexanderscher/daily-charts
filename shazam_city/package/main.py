@@ -22,9 +22,6 @@ from db.get_db import FetchDB
 from spotify_api import SpotifyAPI
 from check import smart_partial_match
 
-CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID_ALENA")
-USER_ID = os.getenv("SPOTIFY_USER_ID_ALENA")
-CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET_ALENA")
 
 db = FetchDB()
 pacific_tz = timezone("America/Los_Angeles")
@@ -35,7 +32,7 @@ path = "/tmp/shazam-city.csv"
 
 
 class Scrape:
-    def __init__(self):
+    def __init__(self, CLIENT_ID, USER_ID, CLIENT_SECRET):
         self.df = []
         self.us = []
         self.other = []
@@ -344,8 +341,11 @@ def send_email_ses(subject, body) -> None:
 
 
 def scrape_all(event):
+    client_id = event["CLIENT_ID"]
+    user_id = event["USER_ID"]
+    client_secret = event["CLIENT_SECRET"]
 
-    scrape = Scrape()
+    scrape = Scrape(client_id, user_id, client_secret)
 
     for link, country in event["links"]:
         scrape.shazam_city(link, country)

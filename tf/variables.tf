@@ -110,3 +110,29 @@ variable "genius_access_token" {
   type = string
 
 }
+
+variable "spotify_client_id_google" {
+  type = string
+}
+
+variable "spotify_client_secret_google" {
+  type = string
+}
+
+
+variable "spotify_user_id_google" {
+  type = string
+}
+
+variable "spotify_client_id_freddy" {
+  type = string
+}
+
+variable "spotify_client_secret_freddy" {
+  type = string
+}
+
+
+variable "spotify_user_id_freddy" {
+  type = string
+}

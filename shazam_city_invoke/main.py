@@ -1,8 +1,17 @@
 import boto3
 import json
 from botocore.exceptions import ClientError
+import os
 
 lambda_client = boto3.client("lambda")
+
+CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID_FREDDY")
+USER_ID = os.getenv("SPOTIFY_USER_ID_FREDDY")
+CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET_FREDDY")
+
+CLIENT_ID_1 = os.getenv("SPOTIFY_CLIENT_ID_GOOGLE")
+USER_ID_1 = os.getenv("SPOTIFY_USER_ID_GOOGLE")
+CLIENT_SECRET_1 = os.getenv("SPOTIFY_CLIENT_SECRET_GOOGLE")
 
 
 def invoke_lambda(payload, function_name):
@@ -26,6 +35,9 @@ def lambda_handler(event, context):
                     )
                 ],
                 "subject": "Shazam US Cities Report",
+                "CLIENT_ID": CLIENT_ID,
+                "USER_ID": USER_ID,
+                "CLIENT_SECRET": CLIENT_SECRET,
             },
             {
                 "links": [
@@ -37,6 +49,9 @@ def lambda_handler(event, context):
                     ("https://www.shazam.com/charts/top-50/australia/adelaide", "AU"),
                 ],
                 "subject": "Shazam Global Cities Report",
+                "CLIENT_ID": CLIENT_ID_1,
+                "USER_ID": USER_ID_1,
+                "CLIENT_SECRET": CLIENT_SECRET_1,
             },
         ]
     }

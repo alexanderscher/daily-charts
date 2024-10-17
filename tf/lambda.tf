@@ -113,16 +113,14 @@ resource "aws_lambda_function" "shazam_city_charts" {
 
   environment {
     variables = {
-      SPOTIFY_CLIENT_ID_ALENA     = var.spotify_client_id_alena
-      SPOTIFY_CLIENT_SECRET_ALENA = var.spotify_client_secret_alena
-      SPOTIFY_USER_ID_ALENA       = var.spotify_user_id_alena
-      ALEX                        = var.alex
-      ALEX_MAIL                   = var.alex_mail
-      ARI                         = var.ari
-      LAURA                       = var.laura
-      CONOR                       = var.conor
-      MICAH                       = var.micah
-      DB_PASSWORD                 = var.db_password
+
+      ALEX        = var.alex
+      ALEX_MAIL   = var.alex_mail
+      ARI         = var.ari
+      LAURA       = var.laura
+      CONOR       = var.conor
+      MICAH       = var.micah
+      DB_PASSWORD = var.db_password
     }
   }
 
@@ -195,6 +193,18 @@ resource "aws_lambda_function" "shazam_city_invoke" {
   filename         = data.archive_file.shazam_city_lambda_invoke.output_path
   source_code_hash = data.archive_file.shazam_city_lambda_invoke.output_base64sha256
   timeout          = 200
+
+  environment {
+    variables = {
+      SPOTIFY_CLIENT_ID_GOOGLE     = var.spotify_client_id_google
+      SPOTIFY_CLIENT_SECRET_GOOGLE = var.spotify_client_secret_google
+      SPOTIFY_USER_ID_GOOGLE       = var.spotify_user_id_google
+      SPOTIFY_CLIENT_ID_FREDDY     = var.spotify_client_id_freddy
+      SPOTIFY_CLIENT_SECRET_FREDDY = var.spotify_client_secret_freddy
+      SPOTIFY_USER_ID_FREDDY       = var.spotify_user_id_freddy
+
+    }
+  }
 
 }
 
