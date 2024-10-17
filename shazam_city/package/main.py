@@ -57,10 +57,11 @@ class Scrape:
     def shazam_city(self, url, country):
         self.driver.get(url)
         time.sleep(3)
-        city_el = self.driver.find_elements(
-            By.XPATH,
-            "/html/body/div[2]/div[1]/main/div[1]/div/div[3]/div[4]/div[1]/select/option",
+        select_element = self.driver.find_element(
+            By.CSS_SELECTOR, 'select[aria-label="Cities"]'
         )
+
+        city_elements = select_element.find_elements(By.TAG_NAME, "option")
 
         citylist = []
         country_url = None
@@ -73,7 +74,7 @@ class Scrape:
         elif "australia" in url:
             country_url = "australia"
 
-        for c in city_el:
+        for c in city_elements:
             if c.text != "Cities":
                 formatted = c.text.replace(",", "").replace(" ", "-").lower()
                 citylist.append(formatted)
