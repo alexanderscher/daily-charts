@@ -82,13 +82,9 @@ class Scrape:
         for city in citylist:
 
             url = f"https://www.shazam.com/charts/top-50/{country_url}/{city}"
+            print(url)
             self.driver.get(url)
             time.sleep(3)
-
-            name = self.driver.find_element(
-                By.XPATH,
-                "/html/body/div[2]/div[1]/main/div[1]/div/div[3]/div[3]/div[1]/button/span",
-            ).text
 
             button_url = self.driver.find_element(
                 By.CLASS_NAME, "Header_responsiveView__srGi_"
@@ -122,7 +118,7 @@ class Scrape:
                             continue
                         else:
                             self.df.append(
-                                (f"Shazam Cities {country} Top 50 {name}", idx, a, s)
+                                (f"Shazam Cities {country} Top 50 {city}", idx, a, s)
                             )
                             continue
 
@@ -137,7 +133,7 @@ class Scrape:
                             continue
                         else:
                             self.df.append(
-                                (f"Shazam Cities {country} Top 50 {name}", idx, a, s)
+                                (f"Shazam Cities {country} Top 50 {city}", idx, a, s)
                             )
                             continue
                     elif " featuring " in a:
@@ -151,7 +147,7 @@ class Scrape:
                             continue
                         else:
                             self.df.append(
-                                (f"Shazam Cities {country} Top 50 {name}", idx, a, s)
+                                (f"Shazam Cities {country} Top 50 {city}", idx, a, s)
                             )
                             continue
                     elif " x " in a:
@@ -165,7 +161,7 @@ class Scrape:
                             continue
                         else:
                             self.df.append(
-                                (f"Shazam Cities {country} Top 50 {name}", idx, a, s)
+                                (f"Shazam Cities {country} Top 50 {city}", idx, a, s)
                             )
                             continue
                     else:
@@ -177,7 +173,7 @@ class Scrape:
                         ):
 
                             self.df.append(
-                                (f"Shazam Cities {country} Top 50 {name}", idx, a, s)
+                                (f"Shazam Cities {country} Top 50 {city}", idx, a, s)
                             )
                             continue
 
