@@ -1,6 +1,3 @@
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-import time
 from botocore.exceptions import ClientError
 import pandas as pd
 from pytz import timezone
@@ -10,8 +7,9 @@ import datetime
 from tempfile import mkdtemp
 from datetime import datetime
 import re
-from selenium.webdriver.common.by import By
 import requests
+from bs4 import BeautifulSoup
+
 
 pd.set_option("display.max_rows", None)
 pd.set_option("display.max_columns", None)
@@ -32,17 +30,17 @@ pacific_tz = timezone("America/Los_Angeles")
 non_latin_pattern = (
     r"[\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\u0400-\u04FF\u1100-\u11FF\uAC00-\uD7AF]"
 )
+path = "/tmp/shazam.csv"
 
 
 class Scrape:
-    def __init__(self, driver):
+    def __init__(self):
         self.df = []
         self.us = []
         self.l2tk_chart = []
         self.other = []
         self.prospect_list = []
         self.already_checked = []
-        self.driver = driver
         self.pub_songs = db.get_pub_songs()
         self.pub_artists = db.get_pub_artists()
         self.roster_artists = db.get_roster_artists()
@@ -51,98 +49,71 @@ class Scrape:
         self.prospects = db.get_prospects()
         self.client = SpotifyAPI(CLIENT_ID, USER_ID, CLIENT_SECRET)
 
-    def download(self, name, url, path):
-        self.driver.get(url)
-        time.sleep(5)
+    def download(self, name, url):
+        response = requests.get(url)
+        if response.status_code != 200:
+            print(f"Failed to access {url}. Status code: {response.status_code}")
+            return
+        soup = BeautifulSoup(response.content, "html.parser")
 
-        button_url = self.driver.find_element(
-            By.CLASS_NAME, "Header_responsiveView__srGi_"
-        ).get_attribute("href")
-        print(f"Download URL: {button_url}")
+        button = soup.find("a", class_="Header_responsiveView__srGi_")
+        if not button:
+            print("Download button not found.")
+            return
 
-        response = requests.get(button_url)
-        if response.status_code == 200:
+        button_url = button.get("href")
+        print(f"Download URL: https://www.shazam.com{button_url}")
+
+        csv_response = requests.get(f"https://www.shazam.com{button_url}")
+        if csv_response.status_code == 200:
             with open(path, "wb") as f:
-                f.write(response.content)
+                f.write(csv_response.content)
             print(f"CSV file saved to {path}")
         else:
-            print(f"Failed to download CSV. Status code: {response.status_code}")
+            print(f"Failed to download CSV. Status code: {csv_response.status_code}")
             return
 
         data = pd.read_csv(path, skiprows=2, on_bad_lines="skip")
+        self.process_data(name, data)
+        os.remove(path)
 
+    def process_data(self, name, data):
         for i, row in data.iterrows():
             s = row["Title"]
             a = row["Artist"]
             idx = row["Rank"]
-            if re.search(non_latin_pattern, a):
-                print(f"Non-latin artist: {a}")
+
+            if re.search(non_latin_pattern, a) or re.search(non_latin_pattern, s):
                 continue
-            elif re.search(non_latin_pattern, s):
-                print(f"Non-latin song: {s}")
+
+            artist_name = self.check_artist(a)
+
+            if artist_name:
                 continue
-            else:
-                if ", " in a:
-                    comma = a.split(", ", 1)[0]
-                    if list(
-                        filter(
-                            lambda x: (x.lower() == comma.lower()),
-                            self.signed_artists + self.roster_artists,
-                        )
-                    ):
-                        continue
-                    else:
-                        self.df.append((name, idx, a, s, None, None, None))
-                        continue
 
-                elif " & " in a:
-                    andpersand = a.split(" & ")[0]
-                    if list(
-                        filter(
-                            lambda x: (x.lower() == andpersand.lower()),
-                            self.signed_artists + self.roster_artists,
-                        )
-                    ):
-                        continue
-                    else:
-                        self.df.append((name, idx, a, s, None, None, None))
-                        continue
-                elif " featuring " in a:
-                    ft = a.split(" featuring ")[0]
-                    if list(
-                        filter(
-                            lambda x: (x.lower() == ft.lower()),
-                            self.signed_artists + self.roster_artists,
-                        )
-                    ):
-                        continue
-                    else:
-                        self.df.append((name, idx, a, s, None, None, None))
-                        continue
-                elif " x " in a:
-                    ex = a.split(" x ")[0]
-                    if list(
-                        filter(
-                            lambda x: (x.lower() == ex.lower()),
-                            self.signed_artists + self.roster_artists,
-                        )
-                    ):
-                        continue
-                    else:
-                        self.df.append((name, idx, a, s, None, None, None))
-                        continue
-                else:
-                    if not list(
-                        filter(
-                            lambda x: (x.lower() == a.lower()),
-                            self.signed_artists + self.roster_artists,
-                        )
-                    ):
+            self.df.append((name, idx, a, s, None, None, None))
+            print("UNSIGNED", a)
 
-                        self.df.append((name, idx, a, s, None, None, None))
-                        continue
+    def check_artist(self, artist):
+        variations = [
+            artist.split(", ", 1)[0],
+            artist.split(" featuring ")[0],
+            artist.split(" x ")[0],
+        ]
 
-        os.remove(path)
+        if " & " in artist:
+            part1, part2 = artist.split(" & ", 1)
+            variations.extend([part1, part2])
+
+        return next(
+            (
+                name
+                for name in variations
+                if name.lower()
+                in map(str.lower, self.signed_artists + self.roster_artists)
+            ),
+            None,
+        )
 
     def chart_search(self, shazam_charts):
 
@@ -379,122 +350,72 @@ def download_shazam(scrape):
     scrape.download(
         "Shazam Global Top 200 Genres / Hip-Hop",
         "https://www.shazam.com/charts/genre/world/hip-hop-rap",
-        f"/tmp/Shazam Top 200 Hip-Hop_Rap.csv",
     )
 
     scrape.download(
         "Shazam Global Top 200 Genres / Pop",
         "https://www.shazam.com/charts/genre/world/pop",
-        f"/tmp/Shazam Top 200 Pop.csv",
     )
 
     scrape.download(
         "Shazam Global Top 100 Genres / ALT",
         "https://www.shazam.com/charts/genre/world/alternative",
-        f"/tmp/Shazam Top 100 Alternative.csv",
     )
 
     scrape.download(
         "Shazam Global Top 100 Genres / R&B",
         "https://www.shazam.com/charts/genre/world/randb-soul",
-        f"/tmp/Shazam Top 100 R&B_Soul.csv",
     )
 
     scrape.download(
         "Shazam Global Top 100 Genres / Singer Songwriter",
         "https://www.shazam.com/charts/genre/world/singer-songwriter",
-        f"/tmp/Shazam Top 50 Singer_Songwriter.csv",
     )
 
     scrape.download(
         "Shazam Global Top 100 Genres / Country",
         "https://www.shazam.com/charts/genre/world/country",
-        f"/tmp/Shazam Top 100 Country.csv",
     )
 
     scrape.download(
-        "Shazam Top 200 / Global",
-        "https://www.shazam.com/charts/top-200/world",
-        f"/tmp/Shazam Top 200 Global Chart - The most Shazamed tracks in the world.csv",
+        "Shazam Top 200 / Global", "https://www.shazam.com/charts/top-200/world"
     )
 
     scrape.download(
         "Shazam Top 200 / US",
         "https://www.shazam.com/charts/top-200/united-states",
-        f"/tmp/Shazam Top 200 United States Chart.csv",
     )
 
     scrape.download(
-        "Shazam Top 200 / UK",
-        "https://www.shazam.com/charts/top-200/united-kingdom",
-        f"/tmp/Shazam Top 200 United Kingdom Chart.csv",
+        "Shazam Top 200 / UK", "https://www.shazam.com/charts/top-200/united-kingdom"
     )
 
     scrape.download(
-        "Shazam Top 200 / CA",
-        "https://www.shazam.com/charts/top-200/canada",
-        f"/tmp/Shazam Top 200 Canada Chart.csv",
+        "Shazam Top 200 / CA", "https://www.shazam.com/charts/top-200/canada"
     )
     scrape.download(
         "Shazam US Top 100 Genres / Hip-Hop",
         "https://www.shazam.com/charts/genre/united-states/hip-hop-rap",
-        f"/tmp/Shazam Top 100 Hip-Hop_Rap.csv",
     )
 
     scrape.download(
         "Shazam US Top 100 Genres / Pop",
         "https://www.shazam.com/charts/genre/united-states/pop",
-        f"/tmp/Shazam Top 100 Pop.csv",
     )
 
     scrape.download(
         "Shazam US Top 100 Genres / Dance",
         "https://www.shazam.com/charts/genre/united-states/dance",
-        f"/tmp/Shazam Top 100 Dance.csv",
     )
 
     scrape.download(
         "Shazam US Top 100 Genres / Country",
         "https://www.shazam.com/charts/genre/united-states/country",
-        f"/tmp/Shazam Top 100 Country.csv",
     )
-
-    scrape.driver.quit()
 
 
 def scrape_all():
-
-    options = webdriver.ChromeOptions()
-    options.binary_location = "/opt/chrome/chrome"
-    options.add_argument("--headless=new")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--window-size=1963x1696")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--shm-size=2gb")
-    options.add_argument("--force-device-scale-factor=1")
-    options.add_argument("--single-process")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-dev-tools")
-    options.add_argument("--no-zygote")
-    options.add_argument(f"--user-data-dir={mkdtemp()}")
-    options.add_argument(f"--data-path={mkdtemp()}")
-    options.add_argument(f"--disk-cache-dir={mkdtemp()}")
-    options.add_argument("--remote-debugging-port=9222")
-    service = webdriver.ChromeService("/opt/chromedriver")
-
-    # local
-    # from selenium.webdriver.chrome.service import Service
-    # from webdriver_manager.chrome import ChromeDriverManager
-    # service = Service(ChromeDriverManager().install())
-    # download_dir = os.path.abspath("../download")
-    # prefs = {
-    #     "download.default_directory": download_dir,
-    # }
-
-    driver = webdriver.Chrome(service=service, options=options)
-
-    scrape = Scrape(driver)
+    scrape = Scrape()
     download_shazam(scrape)
 
     shazam_charts = pd.DataFrame(

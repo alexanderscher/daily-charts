@@ -52,7 +52,6 @@ resource "aws_iam_role" "charts_scheduler_role" {
     }]
   })
 }
-# IAM policy for the scheduler role to invoke the Lambda function
 
 resource "aws_iam_role_policy" "charts_scheduler_policy" {
   name = "charts-scheduler-policy"
@@ -70,7 +69,7 @@ resource "aws_iam_role_policy" "charts_scheduler_policy" {
 
 resource "aws_iam_role_policy" "allow_lambda_access_to_secrets" {
   name = "AllowLambdaAccessToSecrets"
-  role = aws_iam_role.charts_role.name # Ensure this role is your Lambda role
+  role = aws_iam_role.charts_role.name
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -81,6 +80,37 @@ resource "aws_iam_role_policy" "allow_lambda_access_to_secrets" {
           "secretsmanager:GetSecretValue"
         ]
         Resource = aws_secretsmanager_secret.google_private_key.arn
+      }
+    ]
+  })
+}
+
+
+
+resource "aws_iam_role_policy" "charts_invoke_policy" {
+  name = "charts-invoke-policy"
+  role = aws_iam_role.charts_role.id
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Effect" : "Allow",
+        "Action" : "lambda:InvokeFunction",
+        "Resource" : "*"
+      },
+      {
+        "Effect" : "Allow",
+        "Action" : "ses:SendEmail",
+        "Resource" : "arn:aws:ses:us-east-1:742736545134:identity/*"
+      },
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ],
+        "Resource" : "*"
       }
     ]
   })

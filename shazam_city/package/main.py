@@ -1,5 +1,3 @@
-from selenium import webdriver
-from selenium.webdriver.common.by import By
 import time
 from botocore.exceptions import ClientError
 import pandas as pd
@@ -7,14 +5,12 @@ from pytz import timezone
 import os
 import boto3
 import datetime
-from tempfile import mkdtemp
 from datetime import datetime
 import re
-from selenium.webdriver.common.by import By
 import requests
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+from bs4 import BeautifulSoup
+from urllib.parse import urljoin
+
 
 pd.set_option("display.max_rows", None)
 pd.set_option("display.max_columns", None)
@@ -39,13 +35,12 @@ path = "/tmp/shazam-city.csv"
 
 
 class Scrape:
-    def __init__(self, driver):
+    def __init__(self):
         self.df = []
         self.us = []
         self.other = []
         self.prospect_list = []
         self.already_checked = []
-        self.driver = driver
         self.pub_songs = db.get_pub_songs()
         self.pub_artists = db.get_pub_artists()
         self.roster_artists = db.get_roster_artists()
@@ -55,52 +50,53 @@ class Scrape:
         self.client = SpotifyAPI(CLIENT_ID, USER_ID, CLIENT_SECRET)
 
     def shazam_city(self, url, country):
-        self.driver.get(url)
-        time.sleep(10)
+        response = requests.get(url)
+        if response.status_code != 200:
+            print(f"Failed to access {url}. Status code: {response.status_code}")
+            return
 
-        city_elements = WebDriverWait(self.driver, 10).until(
-            EC.presence_of_all_elements_located(
-                (By.XPATH, "//option[starts-with(@value, '/charts/top-50/')]")
-            )
+        soup = BeautifulSoup(response.content, "html.parser")
+
+        city_elements = soup.find_all(
+            "option", value=lambda v: v and v.startswith("/charts/top-50/")
         )
-        citylist = []
+        city_links = [option["value"] for option in city_elements]
 
-        for c in city_elements:
-            link = c.get_attribute("value")
-            citylist.append(link)
+        for city in city_links:
+            city_url = urljoin("https://www.shazam.com", city)
 
-        for city in citylist:
-            time.sleep(10)
-            city_url = f"https://www.shazam.com{city}"
-            print(city_url)
-            self.driver.get(city_url)
-            name = city.split("/")[-1]
-
-            try:
-                button_url = (
-                    WebDriverWait(self.driver, 10)
-                    .until(
-                        EC.element_to_be_clickable(
-                            (By.CLASS_NAME, "Header_responsiveView__srGi_")
-                        )
-                    )
-                    .get_attribute("href")
+            city_response = requests.get(city_url)
+            if city_response.status_code != 200:
+                print(
+                    f"Failed to access {city_url}. Status code: {city_response.status_code}"
                 )
-
-                response = requests.get(button_url)
-                with open(path, "wb") as f:
-                    f.write(response.content)
-
-                data = pd.read_csv(path, skiprows=2, on_bad_lines="skip")
-
-                for i, row in data.iterrows():
-                    self.process_shazam_row(row, name, country)
-
-            except Exception as e:
-                print(f"Error processing city {name}: {str(e)}")
                 continue
 
+            city_soup = BeautifulSoup(city_response.content, "html.parser")
+
+            button = city_soup.find("a", class_="Header_responsiveView__srGi_")
+            if not button:
+                print(f"No download button found for {city_url}")
+                continue
+
+            button_url = urljoin("https://www.shazam.com", button.get("href"))
+
+            self.download_csv(button_url, city, country)
+
+    def download_csv(self, button_url, city, country):
+        response = requests.get(button_url)
+        if response.status_code == 200:
+            with open(path, "wb") as f:
+                f.write(response.content)
+            print(f"CSV saved to {path}")
+
+            data = pd.read_csv(path, skiprows=2, on_bad_lines="skip")
+            for _, row in data.iterrows():
+                self.process_shazam_row(row, city, country)
+
             os.remove(path)
+        else:
+            print(f"Failed to download CSV. Status: {response.status_code}")
 
     def process_shazam_row(self, row, city, country):
         s = row["Title"]
@@ -110,27 +106,28 @@ class Scrape:
         if re.search(non_latin_pattern, a):
             print(f"Non-latin artist: {a}")
             return
-        elif re.search(non_latin_pattern, s):
+        if re.search(non_latin_pattern, s):
             print(f"Non-latin song: {s}")
             return
 
-        if not self.is_signed_or_roster_artist(a):
+        if not self.check_artist(a):
             print(f"Unsigned artist: {a}")
             self.df.append((f"Shazam Cities {country} Top 50 {city}", idx, a, s))
 
-    def is_signed_or_roster_artist(self, artist):
-        if ", " in artist:
-            artist = artist.split(", ", 1)[0]
-        elif " & " in artist:
-            artist = artist.split(" & ")[0]
-        elif " featuring " in artist:
-            artist = artist.split(" featuring ")[0]
-        elif " x " in artist:
-            artist = artist.split(" x ")[0]
+    def check_artist(self, artist):
+        variations = [
+            artist.split(", ", 1)[0],
+            artist.split(" featuring ")[0],
+            artist.split(" x ")[0],
+        ]
+
+        if " & " in artist:
+            part1, part2 = artist.split(" & ", 1)
+            variations.extend([part1, part2])
 
         return any(
-            x.lower() == artist.lower()
-            for x in self.signed_artists + self.roster_artists
+            name.lower() in map(str.lower, self.signed_artists + self.roster_artists)
+            for name in variations
         )
 
     def city_search(self, shazam_cities):
@@ -182,7 +179,6 @@ class Scrape:
                         self.signed_artists + self.roster_artists,
                     )
                 ):
-                    self.already_checked.append(artist)
 
                     continue
 
@@ -201,7 +197,7 @@ class Scrape:
                         matched_labels = list(
                             filter(
                                 lambda x: smart_partial_match(x, copyright[0].lower()),
-                                self.majorlabels,
+                                self.major_labels,
                             )
                         )
                         if not matched_labels:
@@ -220,8 +216,7 @@ class Scrape:
                                     movement,
                                 )
                             )
-                        else:
-                            self.already_checked.append(artist)
+            self.already_checked.append(artist)
 
     def create_html(self, chart_name, data):
         conor = os.getenv("CONOR")
@@ -252,7 +247,7 @@ class Scrape:
 
         def add_content_and_header(chart):
             nonlocal html_body
-            if self.l2tk_chart or self.other or self.prospect_list:
+            if self.other or self.prospect_list:
                 header_text = f"<br><br><strong style='text-decoration: underline;'>{chart.upper()}</strong><br><br>"
                 html_body += header_text
 
@@ -268,7 +263,6 @@ class Scrape:
                     for p in self.other:
                         html_body += f"<p>{p['c']}</p>"
 
-            self.l2tk_chart = []
             self.prospect_list = []
             self.other = []
 
@@ -349,54 +343,12 @@ def send_email_ses(subject, body) -> None:
         print(f"Email sent! Message ID: {response['MessageId']}")
 
 
-def download_shazam(scrape):
-    scrape.shazam_city(
-        "https://www.shazam.com/charts/top-50/united-states/los-angeles", "US"
-    )
-    scrape.shazam_city("https://www.shazam.com/charts/top-50/canada/calgary", "CA")
-    scrape.shazam_city(
-        "https://www.shazam.com/charts/top-50/united-kingdom/belfast", "UK"
-    )
-    scrape.shazam_city("https://www.shazam.com/charts/top-50/australia/adelaide", "AU")
+def scrape_all(event):
 
-    scrape.driver.quit()
+    scrape = Scrape()
 
-
-def scrape_all():
-
-    options = webdriver.ChromeOptions()
-    options.binary_location = "/opt/chrome/chrome"
-    options.add_argument("--headless=new")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--disable-extensions")
-    options.add_argument("--window-size=1280,1024")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--shm-size=2gb")
-    options.add_argument("--force-device-scale-factor=1")
-    options.add_argument("--single-process")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-dev-tools")
-    options.add_argument("--no-zygote")
-    options.add_argument(f"--user-data-dir={mkdtemp()}")
-    options.add_argument(f"--data-path={mkdtemp()}")
-    options.add_argument(f"--disk-cache-dir={mkdtemp()}")
-    options.add_argument("--remote-debugging-port=9222")
-    service = webdriver.ChromeService("/opt/chromedriver")
-
-    # local
-    # from selenium.webdriver.chrome.service import Service
-    # from webdriver_manager.chrome import ChromeDriverManager
-    # service = Service(ChromeDriverManager().install())
-    # download_dir = os.path.abspath("../download")
-    # prefs = {
-    #     "download.default_directory": download_dir,
-    # }
-
-    driver = webdriver.Chrome(service=service, options=options)
-
-    scrape = Scrape(driver)
-    download_shazam(scrape)
+    for link, country in event["links"]:
+        scrape.shazam_city(link, country)
 
     shazam_cities = pd.DataFrame(
         scrape.df, columns=["Chart", "Position", "Artist", "Song"]
@@ -445,14 +397,14 @@ def scrape_all():
     )
 
     db.insert_shazam_city_charts(unsigned_charts)
-    body = scrape.create_html("Shazam Chart Report", unsigned_charts)
+    body = scrape.create_html(event["subject"], unsigned_charts)
 
-    subject = f'Shazam Cities Report - {datetime.now(pacific_tz).strftime("%m/%d/%y")}'
+    subject = f'{event['subject']}- {datetime.now(pacific_tz).strftime("%m/%d/%y")}'
     send_email_ses(subject, body)
 
 
 def lambda_handler(event, context):
-    scrape_all()
+    scrape_all(event)
     return {
         "statusCode": 200,
         "body": "Scrape complete",
