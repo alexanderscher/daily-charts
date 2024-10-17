@@ -397,10 +397,10 @@ def scrape_all():
     )
 
     db.insert_shazam_city_charts(unsigned_charts)
-    body = scrape.create_html("Shazam US Cities Report", unsigned_charts)
+    body = scrape.create_html("Shazam Cities Report", unsigned_charts)
 
     subject = (
-        f'{'Shazam US Cities Report'}- {datetime.now(pacific_tz).strftime("%m/%d/%y")}'
+        f'{'Shazam Cities Report'}- {datetime.now(pacific_tz).strftime("%m/%d/%y")}'
     )
     send_email_ses(subject, body)
 

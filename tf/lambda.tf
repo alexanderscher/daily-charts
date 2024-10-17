@@ -181,33 +181,3 @@ resource "aws_secretsmanager_secret_version" "google_private_key_version" {
 ${var.google_private_key}
 EOF
 }
-
-# data "archive_file" "shazam_city_lambda_invoke" {
-#   type        = "zip"
-#   source_file = "${path.module}/../shazam_city_invoke/main.py"
-#   output_path = "${path.module}/..//shazam_city_invoke/zip/invoke_lambda.zip"
-
-# }
-# resource "aws_lambda_function" "shazam_city_invoke" {
-#   function_name    = "shazam-city-invoke"
-#   role             = aws_iam_role.charts_role.arn
-#   handler          = "main.lambda_handler"
-#   runtime          = "python3.10"
-#   filename         = data.archive_file.shazam_city_lambda_invoke.output_path
-#   source_code_hash = data.archive_file.shazam_city_lambda_invoke.output_base64sha256
-#   timeout          = 200
-
-#   environment {
-#     variables = {
-#       SPOTIFY_CLIENT_ID_GOOGLE     = var.spotify_client_id_google
-#       SPOTIFY_CLIENT_SECRET_GOOGLE = var.spotify_client_secret_google
-#       SPOTIFY_USER_ID_GOOGLE       = var.spotify_user_id_google
-#       SPOTIFY_CLIENT_ID_FREDDY     = var.spotify_client_id_freddy
-#       SPOTIFY_CLIENT_SECRET_FREDDY = var.spotify_client_secret_freddy
-#       SPOTIFY_USER_ID_FREDDY       = var.spotify_user_id_freddy
-
-#     }
-#   }
-
-# }
-
