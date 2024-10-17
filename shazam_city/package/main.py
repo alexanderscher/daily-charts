@@ -56,7 +56,7 @@ class Scrape:
 
     def shazam_city(self, url, country):
         self.driver.get(url)
-        time.sleep(3)
+        time.sleep(10)
 
         city_elements = WebDriverWait(self.driver, 10).until(
             EC.presence_of_all_elements_located(
@@ -70,7 +70,7 @@ class Scrape:
             citylist.append(link)
 
         for city in citylist:
-            time.sleep(5)
+            time.sleep(10)
             city_url = f"https://www.shazam.com{city}"
             print(city_url)
             self.driver.get(city_url)
@@ -369,7 +369,8 @@ def scrape_all():
     options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-gpu")
-    options.add_argument("--window-size=1963x1696")
+    options.add_argument("--disable-extensions")
+    options.add_argument("--window-size=1280,1024")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--shm-size=2gb")
     options.add_argument("--force-device-scale-factor=1")
