@@ -57,8 +57,8 @@ class Scrape:
     def shazam_city(self, url, country):
         self.driver.get(url)
         time.sleep(3)
-        city_elements = self._wait_for_element(
-            self.driver,
+        city_el = self.driver.find_elements(
+            By.XPATH,
             "/html/body/div[2]/div[1]/main/div[1]/div/div[3]/div[4]/div[1]/select/option",
         )
 
@@ -73,7 +73,7 @@ class Scrape:
         elif "australia" in url:
             country_url = "australia"
 
-        for c in city_elements:
+        for c in city_el:
             if c.text != "Cities":
                 formatted = c.text.replace(",", "").replace(" ", "-").lower()
                 citylist.append(formatted)
@@ -182,11 +182,6 @@ class Scrape:
                             continue
 
             os.remove(path)
-
-    def _wait_for_element(self, driver, xpath, timeout=10):
-        return WebDriverWait(driver, timeout).until(
-            EC.presence_of_element_located((By.XPATH, xpath))
-        )
 
     def city_search(self, shazam_cities):
 
