@@ -53,12 +53,39 @@ def lambda_handler(event, context):
     service = webdriver.ChromeService("/opt/chromedriver")
     driver = webdriver.Chrome(service=service, options=options)
 
+    soundcloud("https://soundcloud.com/music-charts-us/sets/all-music-genres", driver)
+    soundcloud("https://soundcloud.com/music-charts-us/sets/hip-hop", driver)
+    soundcloud("https://soundcloud.com/music-charts-us/sets/r-b", driver)
+    soundcloud("https://soundcloud.com/music-charts-us/sets/pop", driver)
+    soundcloud("https://soundcloud.com/music-charts-us/sets/rock", driver)
+    soundcloud("https://soundcloud.com/music-charts-us/sets/folk", driver)
+    soundcloud("https://soundcloud.com/music-charts-us/sets/country", driver)
+    soundcloud("https://soundcloud.com/music-charts-us/sets/new-hot", driver)
+    soundcloud("https://soundcloud.com/music-charts-us/sets/next-pro", driver)
     soundcloud("https://soundcloud.com/trending-music-us/sets/soundcloud-1", driver)
     soundcloud("https://soundcloud.com/trending-music-us/sets/pop-1", driver)
     soundcloud("https://soundcloud.com/trending-music-us/sets/hip-hop-rap", driver)
     soundcloud("https://soundcloud.com/trending-music-us/sets/r-b-1", driver)
 
+    soundcloud("https://soundcloud.com/trending-music-us/sets/country", driver)
+
+    soundcloud("https://soundcloud.com/trending-music-us/sets/folk", driver)
+
+    soundcloud("https://soundcloud.com/trending-music-us/sets/indie-1", driver)
+
+    soundcloud("https://soundcloud.com/trending-music-us/sets/rock-metal-punk", driver)
+
+    soundcloud("https://soundcloud.com/trending-music-us/sets/latin", driver)
+
+    soundcloud("https://soundcloud.com/trending-music-us/sets/electronic-1", driver)
+
+    soundcloud("https://soundcloud.com/trending-music-us/sets/reggae", driver)
+
+    soundcloud("https://soundcloud.com/trending-music-us/sets/soul", driver)
+
+    soundcloud("https://soundcloud.com/trending-music-us/sets/house", driver)
+
     return {
         "statusCode": 200,
-        "body": "Scrape complete",
+        "body": "soundcloud complete",
     }
