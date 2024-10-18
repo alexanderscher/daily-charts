@@ -388,7 +388,7 @@ class Scrape:
             if unsigned == "UNSIGNED":
                 if movement.startswith("-"):
                     color = "red"
-                elif movement == "NEW":
+                elif movement == "New":
                     color = "yellow"
                 elif movement == "0":
                     color = "black"
@@ -486,4 +486,4 @@ def lambda_handler(event, context):
     }
 
 
-lambda_handler(None, None)
+# lambda_handler(None, None)
