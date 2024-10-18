@@ -74,10 +74,10 @@ jobs:
             echo "No images to delete."
           fi
 
-          IMAGES=$(aws ecr list-images --repository-name shazam-city-discovery-ecr --query 'imageIds[*]' --output json)
+          IMAGES=$(aws ecr list-images --repository-name shazam-discovery-ecr --query 'imageIds[*]' --output json)
           if [ "$IMAGES" != "[]" ]; then
             aws ecr batch-delete-image \
-              --repository-name shazam-city-discovery-ecr \
+              --repository-name shazam-discovery-ecr \
               --image-ids "$IMAGES"
           else
             echo "No images to delete."
