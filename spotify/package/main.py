@@ -44,6 +44,7 @@ class Scrape:
         self.l2tk_chart = []
         self.other = []
         self.prospect_list = []
+        self.add_to_signed = []
         self.driver = driver
         self.pub_songs = self.db.get_pub_songs()
         self.pub_artists = self.db.get_pub_artists()
@@ -320,6 +321,7 @@ class Scrape:
                             )
 
                         else:
+                            self.add_to_signed.append(artist)
                             self.us.append(
                                 (
                                     chart,
@@ -581,6 +583,7 @@ def scrape_all():
         ],
     )
     db.insert_spotify_charts(final_df)
+    db.insert_signed_artist(scrape.add_to_signed)
     body = scrape.create_html("roster", "Spotify Roster Report", final_df)
     subject = f'Spotify Roster Report - {datetime.now(pacific_tz).strftime("%m/%d/%y")}'
     send_email_ses(subject, body)

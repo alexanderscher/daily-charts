@@ -48,3 +48,8 @@ def lambda_handler(event, context):
     soundcloud("https://soundcloud.com/trending-music-us/sets/pop-1", driver)
     soundcloud("https://soundcloud.com/trending-music-us/sets/hip-hop-rap", driver)
     soundcloud("https://soundcloud.com/trending-music-us/sets/r-b-1", driver)
+
+    return {
+        "statusCode": 200,
+        "body": "Scrape complete",
+    }
