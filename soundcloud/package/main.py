@@ -23,7 +23,16 @@ def soundcloud(url, driver):
         By.XPATH,
         '//*[@id="content"]/div/div[2]/div[1]/div/div[2]/div[2]/div/div[3]/div/ul/li',
     )
-    print(len(row))
+    if len(row) < 45:
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(4)
+        row = driver.find_elements(
+            By.XPATH,
+            '//*[@id="content"]/div/div[2]/div[1]/div/div[2]/div[2]/div/div[3]/div/ul/li',
+        )
+        print(len(row))
+    else:
+        print(len(row))
 
 
 def lambda_handler(event, context):
