@@ -12,7 +12,7 @@ from .models import MajorLabels
 from .models import RosterArtists
 from .models import RosterSongs
 from .models import Prospect
-from .models import ShazamCityCharts
+from .models import ShazamDiscoveryCharts
 
 
 class FetchDB:
@@ -118,14 +118,14 @@ class FetchDB:
         finally:
             session.close()
 
-    def insert_shazam_city_charts(self, data):
+    def insert_shazam_discovery_charts(self, data):
         session = SessionLocal()
         pacific_tz = timezone("America/Los_Angeles")
         current_date = datetime.now(pacific_tz).date()
 
         try:
             date_exists = session.query(
-                exists().where(ShazamCityCharts.date == current_date)
+                exists().where(ShazamDiscoveryCharts.date == current_date)
             ).scalar()
 
             if not date_exists:
@@ -145,7 +145,7 @@ class FetchDB:
                     movement = str(movement) if movement is not None else "0"
                     label = str(label)
 
-                    new_chart_entry = ShazamCityCharts(
+                    new_chart_entry = ShazamDiscoveryCharts(
                         chart=chart,
                         position=position,
                         artist=artist,
@@ -172,7 +172,7 @@ class FetchDB:
         finally:
             session.close()
 
-    def get_shazam_city_charts(self):
+    def get_shazam_discovery_charts(self):
         session = SessionLocal()
 
         try:
@@ -180,9 +180,9 @@ class FetchDB:
             today_str = datetime.now(pacific_tz).strftime("%Y-%m-%d")
 
             recent_date = (
-                session.query(ShazamCityCharts.date)
-                .filter(ShazamCityCharts.date != today_str)  # Exclude today's date
-                .order_by(ShazamCityCharts.date.desc())
+                session.query(ShazamDiscoveryCharts.date)
+                .filter(ShazamDiscoveryCharts.date != today_str)  # Exclude today's date
+                .order_by(ShazamDiscoveryCharts.date.desc())
                 .first()
             )
 
@@ -190,8 +190,8 @@ class FetchDB:
                 most_recent_date_str = recent_date[0].strftime("%Y-%m-%d")
 
                 charts = (
-                    session.query(ShazamCityCharts)
-                    .filter(ShazamCityCharts.date == most_recent_date_str)
+                    session.query(ShazamDiscoveryCharts)
+                    .filter(ShazamDiscoveryCharts.date == most_recent_date_str)
                     .all()
                 )
 

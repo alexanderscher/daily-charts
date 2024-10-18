@@ -89,6 +89,24 @@ resource "aws_scheduler_schedule" "shazam_city_schedule" {
   }
 }
 
+resource "aws_scheduler_schedule" "shazam_discovery_schedule" {
+  name       = "shazam-discovery-schedule"
+  group_name = "default"
+
+  flexible_time_window {
+    mode = "OFF"
+  }
+
+  schedule_expression          = "cron(0 7 * * ? *)"
+  schedule_expression_timezone = "America/Los_Angeles"
+
+  target {
+    arn      = "arn:aws:lambda:us-east-1:742736545134:function:shazam-discovery-charts"
+    role_arn = aws_iam_role.charts_scheduler_role.arn
+  }
+}
+
+
 
 resource "aws_scheduler_schedule" "genius_schedule" {
   name       = "genius-schedule"

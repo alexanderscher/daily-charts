@@ -133,6 +133,34 @@ resource "aws_lambda_function" "shazam_city_charts" {
   }
 
 }
+
+
+resource "aws_lambda_function" "shazam_discovery_charts" {
+  function_name = "shazam-discovery-charts"
+  role          = aws_iam_role.charts_role.arn
+  package_type  = "Image"
+  image_uri     = "${aws_ecr_repository.shazam_discovery_charts_ecr.repository_url}:latest"
+  timeout       = 480
+  memory_size   = 2048
+
+  environment {
+    variables = {
+
+      ALEX                  = var.alex
+      ALEX_MAIL             = var.alex_mail
+      LUCAS                 = var.lucas
+      ARI                   = var.ari
+      LAURA                 = var.laura
+      CONOR                 = var.conor
+      MICAH                 = var.micah
+      DB_PASSWORD           = var.db_password
+      SPOTIFY_CLIENT_ID     = var.spotify_client_id
+      SPOTIFY_CLIENT_SECRET = var.spotify_client_secret
+      SPOTIFY_USER_ID       = var.spotify_user_id
+    }
+  }
+
+}
 resource "aws_lambda_function" "genius_charts" {
   function_name = "genius-charts"
   role          = aws_iam_role.charts_role.arn

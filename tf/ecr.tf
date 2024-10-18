@@ -65,3 +65,12 @@ data "aws_ecr_image" "shazam_city_charts_ecr" {
   repository_name = aws_ecr_repository.shazam_city_charts_ecr.name
   image_tag       = "latest"
 }
+
+resource "aws_ecr_repository" "shazam_discovery_charts_ecr" {
+  name = "shazam-discovery-charts-ecr"
+}
+
+data "aws_ecr_image" "shazam_discovery_charts_ecr" {
+  repository_name = aws_ecr_repository.shazam_discovery_charts_ecr.name
+  image_tag       = "latest"
+}
