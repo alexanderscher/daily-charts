@@ -337,32 +337,12 @@ class Scrape:
                                 )
                             )
 
-    def create_html(self, type, chart_name):
+    def create_html(self, type, chart_name, final_df):
         conor = os.getenv("CONOR")
         lucas = os.getenv("LUCAS")
         ari = os.getenv("ARI")
         laura = os.getenv("LAURA")
         micah = os.getenv("MICAH")
-
-        final_df = pd.DataFrame(
-            self.us,
-            columns=[
-                "Chart",
-                "Position",
-                "Artist",
-                "Song",
-                "Unsigned",
-                "L2TK",
-                "Movement",
-                "Days",
-                "Peak",
-                "Link",
-                "Label",
-                "Date",
-            ],
-        )
-        print(final_df)
-        db.insert_spotify_charts(final_df)
 
         html_body = f"""
         <html>
@@ -582,11 +562,30 @@ def scrape_all():
     )
     scrape.driver.quit()
     scrape.chart_search()
-    body = scrape.create_html("roster", "Spotify Roster Report")
+
+    final_df = pd.DataFrame(
+        scrape.us,
+        columns=[
+            "Chart",
+            "Position",
+            "Artist",
+            "Song",
+            "Unsigned",
+            "L2TK",
+            "Movement",
+            "Days",
+            "Peak",
+            "Link",
+            "Label",
+            "Date",
+        ],
+    )
+    db.insert_spotify_charts(final_df)
+    body = scrape.create_html("roster", "Spotify Roster Report", final_df)
     subject = f'Spotify Roster Report - {datetime.now(pacific_tz).strftime("%m/%d/%y")}'
     send_email_ses(subject, body)
 
-    body = scrape.create_html("chart", "Spotify Chart Report")
+    body = scrape.create_html("chart", "Spotify Chart Report", final_df)
     subject = f'Spotify Chart Report - {datetime.now(pacific_tz).strftime("%m/%d/%y")}'
     send_email_ses(subject, body)
 
