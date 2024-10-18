@@ -16,5 +16,4 @@ COPY --from=build /opt/chrome-linux64 /opt/chrome
 COPY --from=build /opt/chromedriver-linux64 /opt/
 COPY package/ /var/task/
 RUN chmod 755 /var/task/main.py
-
 CMD [ "main.lambda_handler" ]
