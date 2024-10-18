@@ -23,9 +23,9 @@ from db.get_db import FetchDB
 from spotify_api import SpotifyAPI
 from check import smart_partial_match
 
-CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
-USER_ID = os.getenv("SPOTIFY_USER_ID")
-CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
+CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID_FREDDY")
+USER_ID = os.getenv("SPOTIFY_USER_ID_FREDDY")
+CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET_FREDDY")
 
 APPLE_TEAM_ID = os.getenv("APPLE_TEAM_ID")
 APPLE_KEY_ID = os.getenv("APPLE_KEY_ID")

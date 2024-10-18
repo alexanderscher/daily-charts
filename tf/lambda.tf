@@ -146,17 +146,17 @@ resource "aws_lambda_function" "shazam_discovery_charts" {
   environment {
     variables = {
 
-      ALEX                  = var.alex
-      ALEX_MAIL             = var.alex_mail
-      LUCAS                 = var.lucas
-      ARI                   = var.ari
-      LAURA                 = var.laura
-      CONOR                 = var.conor
-      MICAH                 = var.micah
-      DB_PASSWORD           = var.db_password
-      SPOTIFY_CLIENT_ID     = var.spotify_client_id
-      SPOTIFY_CLIENT_SECRET = var.spotify_client_secret
-      SPOTIFY_USER_ID       = var.spotify_user_id
+      ALEX                         = var.alex
+      ALEX_MAIL                    = var.alex_mail
+      LUCAS                        = var.lucas
+      ARI                          = var.ari
+      LAURA                        = var.laura
+      CONOR                        = var.conor
+      MICAH                        = var.micah
+      DB_PASSWORD                  = var.db_password
+      SPOTIFY_CLIENT_ID_FREDDY     = var.spotify_client_id_freddy
+      SPOTIFY_CLIENT_SECRET_FREDDY = var.spotify_client_secret_freddy
+      SPOTIFY_USER_ID_FREDDY       = var.spotify_user_id_freddy
     }
   }
 

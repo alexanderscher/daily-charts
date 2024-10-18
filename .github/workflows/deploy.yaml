@@ -74,6 +74,15 @@ jobs:
             echo "No images to delete."
           fi
 
+          IMAGES=$(aws ecr list-images --repository-name shazam-city-discovery-ecr --query 'imageIds[*]' --output json)
+          if [ "$IMAGES" != "[]" ]; then
+            aws ecr batch-delete-image \
+              --repository-name shazam-city-discovery-ecr \
+              --image-ids "$IMAGES"
+          else
+            echo "No images to delete."
+          fi
+
           IMAGES=$(aws ecr list-images --repository-name genius-charts-ecr --query 'imageIds[*]' --output json)
           if [ "$IMAGES" != "[]" ]; then
             aws ecr batch-delete-image \
@@ -153,6 +162,7 @@ jobs:
           docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/no-track-ecr:latest --push --provenance=false ./notrack
           docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/genius-charts-ecr:latest --push --provenance=false ./genius
           docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/shazam-city-charts-ecr:latest --push --provenance=false ./shazam_city
+          docker buildx build --platform linux/amd64 -t 742736545134.dkr.ecr.us-east-1.amazonaws.com/shazam-discovery-charts-ecr:latest --push --provenance=false ./shazam_discovery
 
       # Step 7: Update the Lambda function with the new image
       - name: Update Lambda Function with New Image
@@ -164,6 +174,7 @@ jobs:
           aws lambda update-function-code --function-name genius-charts --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/genius-charts-ecr:latest
           aws lambda update-function-code --function-name no-track --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/no-track-ecr:latest
           aws lambda update-function-code --function-name shazam-city-charts --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/shazam-city-charts-ecr:latest
+          aws lambda update-function-code --function-name shazam-discovery-charts --image-uri 742736545134.dkr.ecr.us-east-1.amazonaws.com/shazam-discovery-charts-ecr:latest
 
       # Step 8: Install Terraform
       - name: Install Terraform
