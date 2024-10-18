@@ -116,6 +116,37 @@ class FetchDB:
         finally:
             session.close()
 
+    def insert_signed_artist(self, data):
+        session = SessionLocal()
+        try:
+            for name in data:
+                name = name.strip().lower()
+                print(f"Inserting artist: {name}")
+                existing_artist = (
+                    session.query(SignedArtists).filter_by(name=name).first()
+                )
+
+                if existing_artist:
+                    print(f"Artist {name} is already in the database.")
+                    continue
+
+                new_chart_entry = SignedArtists(
+                    name=name,
+                )
+                session.add(new_chart_entry)
+
+            session.commit()
+            print("Data inserted successfully.")
+            print(data)
+
+        except Exception as e:
+            session.rollback()
+            print(f"An error occurred: {e}")
+            raise e
+
+        finally:
+            session.close()
+
     def get_genius_charts(self):
         session = SessionLocal()
 

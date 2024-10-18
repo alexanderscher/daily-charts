@@ -121,6 +121,7 @@ class FetchDB:
         session = SessionLocal()
         try:
             for name in data:
+                name = name.strip().lower()
                 print(f"Inserting artist: {name}")
                 existing_artist = (
                     session.query(SignedArtists).filter_by(name=name).first()
