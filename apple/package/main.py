@@ -28,9 +28,9 @@ db = FetchDB()
 
 pacific_tz = timezone("America/Los_Angeles")
 
-CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID_ALENA")
-USER_ID = os.getenv("SPOTIFY_USER_ID_ALENA")
-CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET_ALENA")
+CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID_FREDDY")
+USER_ID = os.getenv("SPOTIFY_USER_ID_FREDDY")
+CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET_FREDDY")
 
 APPLE_TEAM_ID = os.getenv("APPLE_TEAM_ID")
 APPLE_KEY_ID = os.getenv("APPLE_KEY_ID")

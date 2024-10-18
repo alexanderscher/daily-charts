@@ -62,20 +62,20 @@ resource "aws_lambda_function" "apple_charts" {
 
   environment {
     variables = {
-      SPOTIFY_CLIENT_ID_ALENA     = var.spotify_client_id_alena
-      SPOTIFY_CLIENT_SECRET_ALENA = var.spotify_client_secret_alena
-      SPOTIFY_USER_ID_ALENA       = var.spotify_user_id_alena
-      APPLE_TEAM_ID               = var.apple_team_id
-      APPLE_KEY_ID                = var.apple_key_id
-      APPLE_PRIVATE_KEY           = var.apple_private_key
-      ALEX                        = var.alex
-      ALEX_MAIL                   = var.alex_mail
-      LUCAS                       = var.lucas
-      ARI                         = var.ari
-      LAURA                       = var.laura
-      CONOR                       = var.conor
-      MICAH                       = var.micah
-      DB_PASSWORD                 = var.db_password
+      SPOTIFY_CLIENT_ID_FREDDY     = var.spotify_client_id_freddy
+      SPOTIFY_CLIENT_SECRET_FREDDY = var.spotify_client_secret_freddy
+      SPOTIFY_USER_ID_FREDDY       = var.spotify_user_id_freddy
+      APPLE_TEAM_ID                = var.apple_team_id
+      APPLE_KEY_ID                 = var.apple_key_id
+      APPLE_PRIVATE_KEY            = var.apple_private_key
+      ALEX                         = var.alex
+      ALEX_MAIL                    = var.alex_mail
+      LUCAS                        = var.lucas
+      ARI                          = var.ari
+      LAURA                        = var.laura
+      CONOR                        = var.conor
+      MICAH                        = var.micah
+      DB_PASSWORD                  = var.db_password
     }
   }
 

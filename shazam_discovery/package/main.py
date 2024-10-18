@@ -538,9 +538,11 @@ def scrape_all():
     )
 
     db.insert_shazam_discovery_charts(unsigned_charts)
-    body = apple_music_client.create_html("Shazam Chart Report", unsigned_charts)
+    body = apple_music_client.create_html("Shazam Discovery Report", unsigned_charts)
 
-    subject = f'Shazam Chart Report - {datetime.now(pacific_tz).strftime("%m/%d/%y")}'
+    subject = (
+        f'Shazam Discovery Report - {datetime.now(pacific_tz).strftime("%m/%d/%y")}'
+    )
     send_email_ses(subject, body)
 
 
