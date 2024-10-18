@@ -4,7 +4,7 @@ FROM public.ecr.aws/lambda/python@sha256:a05b85bc8919d6c7db4f438a616bbb1ea8af580
 RUN dnf install -y postgresql-devel gcc python3-devel
 
 # Install Python dependencies
-RUN pip install pandas boto3 requests SQLAlchemy psycopg2 beautifulsoup4 lxml
+RUN pip install pandas boto3 requests SQLAlchemy psycopg2 pyjwt cryptography numpy beautifulsoup4 lxml
 
 # Copy your application code
 COPY package/ /var/task/
