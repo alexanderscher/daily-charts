@@ -157,6 +157,9 @@ resource "aws_lambda_function" "shazam_discovery_charts" {
       SPOTIFY_CLIENT_ID_FREDDY     = var.spotify_client_id_freddy
       SPOTIFY_CLIENT_SECRET_FREDDY = var.spotify_client_secret_freddy
       SPOTIFY_USER_ID_FREDDY       = var.spotify_user_id_freddy
+      APPLE_TEAM_ID                = var.apple_team_id
+      APPLE_KEY_ID                 = var.apple_key_id
+      APPLE_PRIVATE_KEY            = var.apple_private_key
     }
   }
 
