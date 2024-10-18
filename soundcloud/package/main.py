@@ -12,7 +12,7 @@ pd.set_option("display.colheader_justify", "center")
 pd.set_option("display.precision", 3)
 
 
-def soundcloud(self, url, driver):
+def soundcloud(url, driver):
     driver.get(url)
     time.sleep(10)
 
