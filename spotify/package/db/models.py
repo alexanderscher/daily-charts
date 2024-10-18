@@ -48,5 +48,5 @@ class SpotifyCharts(Base):
     peak = Column(String)
     link = Column(String)
     label = Column(String)
-    chart_date = Column(Date)
+    chart_date = Column(String)
     date = Column(Date)

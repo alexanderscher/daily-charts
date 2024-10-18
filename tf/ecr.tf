@@ -74,3 +74,12 @@ data "aws_ecr_image" "shazam_discovery_charts_ecr" {
   repository_name = aws_ecr_repository.shazam_discovery_charts_ecr.name
   image_tag       = "latest"
 }
+
+resource "aws_ecr_repository" "soundcloud_charts_ecr" {
+  name = "soundcloud-charts-ecr"
+}
+
+data "aws_ecr_image" "soundcloud_charts_ecr" {
+  repository_name = aws_ecr_repository.soundcloud_charts_ecr.name
+  image_tag       = "latest"
+}

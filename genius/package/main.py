@@ -323,6 +323,7 @@ class Scrape:
         ari = os.getenv("ARI")
         laura = os.getenv("LAURA")
         micah = os.getenv("MICAH")
+        lucas = os.getenv("LUCAS")
 
         html_body = f"""
         <html>
@@ -339,7 +340,7 @@ class Scrape:
         <body>
         <p>
             {chart_name} - {datetime.datetime.now().strftime("%m/%d/%y")}
-            <br> {conor}, {ari}, {laura}, {micah}
+            <br> {conor}, {ari}, {laura}, {micah}, {lucas}
         </p>
         """
 
